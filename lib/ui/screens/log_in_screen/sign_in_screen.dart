@@ -10,17 +10,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class RegistrationScreen extends StatefulWidget {
-  const RegistrationScreen({super.key});
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
 
   @override
-  State<RegistrationScreen> createState() => _RegistrationScreenState();
+  State<SignInScreen> createState() => _SignInScreenState();
 }
 
-class _RegistrationScreenState extends State<RegistrationScreen> {
+class _SignInScreenState extends State<SignInScreen> {
   final _formKey = GlobalKey<FormState>();
-
-  final userNameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -49,7 +47,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Registration',
+                            'Sign In',
                             style: TextStyle(
                               fontSize: 26.sp,
                               fontWeight: FontWeight.w700,
@@ -57,24 +55,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             ),
                           ),
                           CustomTextButton(
-                            text: 'Log In',
+                            text: 'Register',
                             onpressed: () {
                               authentificationCubit.errorTextClean();
                               Navigator.of(context).pushReplacementNamed(
-                                  MainNavigationRouteNames.signInScreen);
+                                  MainNavigationRouteNames.registrationScreen);
                             },
                             color: themeColors.firstPrimaryColor,
                           ),
                         ],
                       ),
-                      SizedBox(height: 25.h),
-                      CustomTextFormField(
-                        hintText: 'User name',
-                        validatorText: 'Please enter your user name',
-                        controller: userNameController,
-                        obscureText: false,
-                      ),
-                      SizedBox(height: 25.h),
+                      SizedBox(height: 20.h),
                       CustomTextFormField(
                         hintText: 'E-mail',
                         validatorText: 'Please enter your E-mail',
@@ -90,18 +81,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       SizedBox(height: 20.h),
                       GradientButton(
-                        text: 'Register',
+                        text: 'Sign In',
                         backgroundGradient: themeColors.primaryGradient,
                         onPressed: () {
                           final form = _formKey.currentState;
                           if (!form!.validate()) return;
 
-                          final userName = userNameController.text;
                           final email = emailController.text;
                           final password = passwordController.text;
 
-                          authentificationCubit.registerWithEmailAndPassword(
-                            userName,
+                          authentificationCubit.signInWithEmailAndPassword(
                             email,
                             password,
                           );

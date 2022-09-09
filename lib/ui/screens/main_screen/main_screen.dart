@@ -1,7 +1,9 @@
+import 'package:chat_app/domain/cubits/authentification_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_colors_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/screens/main_screen/chats_page/chats_page.dart';
 import 'package:chat_app/ui/screens/main_screen/settings_page/settings_page.dart';
+import 'package:chat_app/ui/widgets/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,7 +24,10 @@ class _MainScreenState extends State<MainScreen> {
     final themeColorsCubit = context.watch<ThemeColorsCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
-    return Scaffold(
+    final authentificationCubit = context.watch<AuthentificationCubit>();
+    final loading = authentificationCubit.loading;
+
+    return loading ? LoadingPage() : Scaffold(
       backgroundColor: themeColors.backgroundColor,
       body: IndexedStack(
         index: _currentIndex,

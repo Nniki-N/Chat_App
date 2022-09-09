@@ -22,6 +22,8 @@ abstract class AppThemeColors {
 
   Color get myMessageBackgroundColor;
   Color get messageBackgroundColor;
+
+  Color get errorColor;
 }
 
 class DarkThemeColors extends AppThemeColors {
@@ -68,6 +70,9 @@ class DarkThemeColors extends AppThemeColors {
   Color get myMessageBackgroundColor => const Color(0xffD0ECE8);
   @override
   Color get messageBackgroundColor => const Color(0xff3D3D3D);
+
+  @override
+  Color get errorColor => Colors.red;
 }
 
 class LightThemeColors extends AppThemeColors {
@@ -114,4 +119,7 @@ class LightThemeColors extends AppThemeColors {
   Color get myMessageBackgroundColor => const Color(0xffD0ECE8);
   @override
   Color get messageBackgroundColor => const Color(0xffE9E9E9);
+
+  @override
+  Color get errorColor => Colors.red;
 }

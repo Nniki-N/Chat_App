@@ -1,5 +1,7 @@
+import 'package:chat_app/domain/cubits/authentification_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_colors_cubit.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
+import 'package:chat_app/ui/screens/wrapper/wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,13 +17,16 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return BlocProvider(
-          create: (context) => ThemeColorsCubit(),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => ThemeColorsCubit()),
+            BlocProvider(create: (context) => AuthentificationCubit()),
+          ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: ThemeData(fontFamily: 'Poppins'),
             routes: mainNavigation.routes,
-            initialRoute: MainNavigationRouteNames.mainScreen,
+            home: const Wrapper(),
           ),
         );
       },

@@ -1,4 +1,6 @@
+import 'package:chat_app/domain/cubits/authentification_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_colors_cubit.dart';
+import 'package:chat_app/ui/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,40 +19,51 @@ class _SettingsPageState extends State<SettingsPage> {
     final themeColors = themeColorsCubit.themeColors;
     final isSelected = [themeColorsCubit.state, !themeColorsCubit.state];
 
-    return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          border:
-              Border.all(color: themeColors.firstPrimaryColor, width: 1.5.w),
-          borderRadius: BorderRadius.circular(15.w),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: ToggleButtons(
-          isSelected: isSelected,
-          color: themeColors.firstPrimaryColor,
-          fillColor: themeColors.firstPrimaryColor,
-          selectedColor: Colors.white,
-          renderBorder: false,
-          splashColor: Colors.transparent,
-          highlightColor: Colors.transparent,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 5.h),
-              child: Text('Light theme', style: TextStyle(fontSize: 18.sp)),
+    final authentificationCubit = context.watch<AuthentificationCubit>();
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 17.w, vertical: 40.h),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                  color: themeColors.firstPrimaryColor, width: 1.5.w),
+              borderRadius: BorderRadius.circular(50.w),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 5.h),
-              child: Text('Dark theme', style: TextStyle(fontSize: 18.sp)),
-            ),
-          ],
-          onPressed: (int newIndex) {
-            setState(() {
-              if (!isSelected[newIndex]) {
-                themeColorsCubit.switchTheme();
+            clipBehavior: Clip.hardEdge,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return ToggleButtons(
+                  constraints: BoxConstraints.expand(width: constraints.maxWidth/2),
+                  isSelected: isSelected,
+                  color: themeColors.firstPrimaryColor,
+                  fillColor: themeColors.firstPrimaryColor,
+                  selectedColor: Colors.white,
+                  renderBorder: false,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  children: [
+                    Text('Light theme', style: TextStyle(fontSize: 18.sp)),
+                    Text('Dark theme', style: TextStyle(fontSize: 18.sp)),
+                  ],
+                  onPressed: (int newIndex) {
+                    setState(() {
+                      if (!isSelected[newIndex]) themeColorsCubit.switchTheme();
+                    });
+                  },
+                );
               }
-            });
-          },
-        ),
+            ),
+          ),
+          SizedBox(height: 30.h),
+          GradientButton(
+            text: 'Sign Out',
+            backgroundGradient: themeColors.primaryGradient,
+            onPressed: () => authentificationCubit.signOut(),
+          ),
+        ],
       ),
     );
   }
