@@ -1,40 +1,39 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:json_annotation/json_annotation.dart';
 
+part 'user_model.g.dart';
+
+@JsonSerializable(fieldRename: FieldRename.snake, explicitToJson: true)
 class UserModel {
-  final String uid;
+  final String userId;
   final String userName;
-  final List contacts;
-  final List chats;
   final bool isOnline;
-  final String lastSeen;
-  final bool isLoggedIn;
+  final DateTime lastSeen;
 
   UserModel({
-    required this.uid,
+    required this.userId,
     required this.userName,
-    this.contacts = const [],
-    this.chats = const [],
     this.isOnline = true,
-    this.lastSeen = '',
-    this.isLoggedIn = false,
-  });
+    DateTime? lastSeen,
+  }) : this.lastSeen = lastSeen ?? DateTime.now();
 
   UserModel copyWith({
-    String? uid,
+    String? userId,
     String? userName,
-    List? contacts,
-    List? chats,
     bool? isOnline,
-    String? lastSeen,
-    bool? isLoggedIn,
+    DateTime? lastSeen,
+    Map<String, dynamic>? chats,
   }) {
     return UserModel(
-      uid: uid ?? this.uid,
+      userId: userId ?? this.userId,
       userName: userName ?? this.userName,
-      contacts: contacts ?? this.contacts,
-      chats: chats ?? this.chats,
       isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
-      isLoggedIn: isLoggedIn ?? this.isLoggedIn,
     );
   }
+
+  Map<String, dynamic> toJson() => _$UserModelToJson(this);
+
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
 }

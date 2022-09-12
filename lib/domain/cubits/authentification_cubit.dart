@@ -1,9 +1,12 @@
+import 'package:chat_app/domain/data_poviders/user_data_provider.dart';
+import 'package:chat_app/domain/entity/app_authentification_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
-class AuthentificationCubit extends HydratedCubit<UserModel> {
+class AuthentificationCubit extends HydratedCubit<AppAuthentificationModel> {
   final _firebaseAuth = FirebaseAuth.instance;
+  final _userDataProvider = UserDataProvider();
 
   bool _loading = false;
   String _errorText = '';
@@ -13,7 +16,8 @@ class AuthentificationCubit extends HydratedCubit<UserModel> {
   bool get loading => _loading;
   String get errorText => _errorText;
 
-  AuthentificationCubit() : super(UserModel(uid: '', userName: '')) {
+  AuthentificationCubit()
+      : super(AppAuthentificationModel(userId: '', isLoggedIn: false)) {
     _isLogedIn = state.isLoggedIn;
   }
 
@@ -22,17 +26,16 @@ class AuthentificationCubit extends HydratedCubit<UserModel> {
     _errorText = '';
   }
 
-  // create UserModel from firebase User
-  UserModel? _userFromFirebaseUser({
-    required User? user,
-    required String userName,
-  }) {
-    return user != null
-        ? UserModel(
-            uid: user.uid,
-            userName: userName,
-          )
-        : null;
+  // conver firebase user date into UserModel
+  Future<UserModel?> _converFirebaseUserIntoUserModel({required User? user, String userName = ''}) async {
+    if (user == null) return null;
+
+    // get UserModel from firebase firestore
+    final result = await _userDataProvider.getUserFromFireBase(user.uid);
+    if (result != null) return result;
+
+    // return new UserModel if it absent in firebase firestore
+    return UserModel(userId: user.uid, userName: userName);
   }
 
   // sign in
@@ -49,12 +52,17 @@ class AuthentificationCubit extends HydratedCubit<UserModel> {
       );
       final user = result.user;
 
-      // if sign in is successful update state with new data and show screen via _isLogedIn
-      final newState = _userFromFirebaseUser(user: user, userName: '');
-      if (newState != null) {
+      // get user from firebase firestore
+      final userModel = await _converFirebaseUserIntoUserModel(user: user);
+      if (userModel != null) {
+        // upload new user state
+        _userDataProvider.saveUserInFirebase(
+            userModel.copyWith(isOnline: true, lastSeen: DateTime.now()));
+
+        // save data in storage
         _errorText = '';
         _isLogedIn = true;
-        emit(newState.copyWith(isLoggedIn: _isLogedIn));
+        emit(state.copyWith(userId: userModel.userId, isLoggedIn: _isLogedIn));
       }
     } on FirebaseAuthException catch (e) {
       // show error message
@@ -90,10 +98,19 @@ class AuthentificationCubit extends HydratedCubit<UserModel> {
 
       await _firebaseAuth.signOut();
 
-      // if sign out is successful update state with new data and show screen via _isLogedIn
+      // get user from firebase
+      final userModel =
+          await _userDataProvider.getUserFromFireBase(state.userId);
+      if (userModel != null) {
+        // upload new user state
+        _userDataProvider.saveUserInFirebase(
+            userModel.copyWith(isOnline: false, lastSeen: DateTime.now()));
+      }
+
+      // save data in storage
       _errorText = '';
       _isLogedIn = false;
-      emit(UserModel(uid: '', userName: '', isLoggedIn: _isLogedIn));
+      emit(state.copyWith(userId: '', isLoggedIn: _isLogedIn));
     } on FirebaseAuthException catch (e) {
       // show error message
       switch (e.code) {
@@ -129,12 +146,18 @@ class AuthentificationCubit extends HydratedCubit<UserModel> {
       );
       final user = result.user;
 
-      // if registration is successful update state with new data and show another screen via _isLogedIn
-      final newState = _userFromFirebaseUser(user: user, userName: '');
-      if (newState != null) {
+      // get user from firebase firestore
+      final userModel =
+          await _converFirebaseUserIntoUserModel(user: user, userName: userName);
+      print(userModel?.toJson().toString());
+      if (userModel != null) {
+        // upload new user state
+        _userDataProvider.saveUserInFirebase(userModel);
+
+        // save data in storage
         _errorText = '';
         _isLogedIn = true;
-        emit(newState.copyWith(isLoggedIn: _isLogedIn));
+        emit(state.copyWith(userId: userModel.userId, isLoggedIn: _isLogedIn));
       }
     } on FirebaseAuthException catch (e) {
       // show error message
@@ -161,14 +184,15 @@ class AuthentificationCubit extends HydratedCubit<UserModel> {
 
   // read data from storage
   @override
-  UserModel? fromJson(Map<String, dynamic> json) {
-    return state.copyWith(isLoggedIn: json['is_logged_in']);
+  AppAuthentificationModel? fromJson(Map<String, dynamic> json) {
+    return state.copyWith(userId: json['user_id'], isLoggedIn: json['is_logged_in']);
   }
 
   // write data to storage
   @override
-  Map<String, bool>? toJson(UserModel state) {
-    return <String, bool>{
+  Map<String, dynamic>? toJson(AppAuthentificationModel state) {
+    return <String, dynamic>{
+      'user_id': state.userId,
       'is_logged_in': state.isLoggedIn,
     };
   }
