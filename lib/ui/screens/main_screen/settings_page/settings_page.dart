@@ -15,7 +15,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
     final isSelected = [themeColorsCubit.state, !themeColorsCubit.state];
 
@@ -50,7 +50,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ],
                   onPressed: (int newIndex) {
                     setState(() {
-                      if (!isSelected[newIndex]) themeColorsCubit.switchTheme();
+                      if (!isSelected[newIndex]) themeColorsCubit.toggleTheme();
                     });
                   },
                 );

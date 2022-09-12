@@ -1,46 +1,40 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:intl/intl.dart';
 
-class User {
+class UserModel {
   final String uid;
   final String userName;
-  final String email;
-  final String password;
   final List contacts;
   final List chats;
-  final bool status;
+  final bool isOnline;
   final String lastSeen;
+  final bool isLoggedIn;
 
-  User({
+  UserModel({
     required this.uid,
     required this.userName,
-    required this.email,
-    required this.password,
     this.contacts = const [],
     this.chats = const [],
-    this.status = true,
+    this.isOnline = true,
     this.lastSeen = '',
+    this.isLoggedIn = false,
   });
 
-  User copyWith({
+  UserModel copyWith({
     String? uid,
     String? userName,
-    String? email,
-    String? password,
     List? contacts,
     List? chats,
-    bool? status,
+    bool? isOnline,
     String? lastSeen,
+    bool? isLoggedIn,
   }) {
-    return User(
+    return UserModel(
       uid: uid ?? this.uid,
       userName: userName ?? this.userName,
-      email: email ?? this.email,
-      password: password ?? this.password,
       contacts: contacts ?? this.contacts,
       chats: chats ?? this.chats,
-      status: status ?? this.status,
+      isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
+      isLoggedIn: isLoggedIn ?? this.isLoggedIn,
     );
   }
 }

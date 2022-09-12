@@ -13,7 +13,7 @@ class Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return Positioned(
@@ -54,7 +54,7 @@ class _HeaaderButtonBack extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return SizedBox(
@@ -101,7 +101,7 @@ class _HeaderTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return Expanded(
@@ -154,7 +154,7 @@ class _HeaderCallButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return Row(

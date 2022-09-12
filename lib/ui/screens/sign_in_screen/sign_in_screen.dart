@@ -24,7 +24,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     final authentificationCubit = context.watch<AuthentificationCubit>();

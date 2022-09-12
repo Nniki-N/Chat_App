@@ -21,13 +21,11 @@ class MessagesBlock extends StatelessWidget {
       margin: EdgeInsets.symmetric(vertical: 15.h),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: textsList.length == 1
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Container(
-            height: 35.h,
-            width: 35.w,
+            height: 40.h,
+            width: 40.w,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               image: DecorationImage(
@@ -36,7 +34,7 @@ class MessagesBlock extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 20.w),
+          SizedBox(width: 15.w),
           Flexible(
             child: ConstrainedBox(
               constraints: BoxConstraints(
@@ -70,7 +68,7 @@ class _MessageBlockItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return Align(
@@ -85,12 +83,25 @@ class _MessageBlockItem extends StatelessWidget {
             bottomRight: Radius.circular(20.w),
           ),
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: themeColors.messageTextColor,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: themeColors.messageTextColor,
+              ),
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              '15:04',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: themeColors.secondTextColor,
+              ),
+            ),
+          ],
         ),
       ),
     );

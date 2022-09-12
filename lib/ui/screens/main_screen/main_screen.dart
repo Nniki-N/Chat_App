@@ -21,13 +21,13 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     final authentificationCubit = context.watch<AuthentificationCubit>();
     final loading = authentificationCubit.loading;
 
-    return loading ? LoadingPage() : Scaffold(
+    return loading ? const LoadingPage() : Scaffold(
       backgroundColor: themeColors.backgroundColor,
       body: IndexedStack(
         index: _currentIndex,
@@ -59,7 +59,7 @@ class _MainScreenState extends State<MainScreen> {
 
   GestureDetector _bottomNavigationBarItem(
       {required String svgPath, required int index}) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return GestureDetector(

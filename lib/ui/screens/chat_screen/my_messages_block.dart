@@ -56,7 +56,7 @@ class _MyMessageBlockItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return Align(
@@ -71,12 +71,25 @@ class _MyMessageBlockItem extends StatelessWidget {
             bottomLeft: Radius.circular(20.w),
           ),
         ),
-        child: Text(
-          text,
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: themeColors.myMessageTextColor,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: themeColors.myMessageTextColor,
+              ),
+            ),
+            SizedBox(height: 2.h),
+            Text(
+              '15:04',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: themeColors.secondPrimaryColor,
+              ),
+            ),
+          ],
         ),
       ),
     );

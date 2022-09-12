@@ -12,6 +12,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mainNavigation = MainNavigation();
+
+    // show ui on all screens in the same way
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       minTextAdapt: true,
@@ -19,7 +21,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider(create: (context) => ThemeColorsCubit()),
+            BlocProvider(create: (context) => ThemeCubit()),
             BlocProvider(create: (context) => AuthentificationCubit()),
           ],
           child: MaterialApp(

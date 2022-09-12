@@ -16,7 +16,7 @@ class ChatsPage extends StatelessWidget {
         const _ChatsTitleAndSearchField(),
         Expanded(
           child: ListView.separated(
-            padding: EdgeInsets.zero,
+            padding: EdgeInsets.only(bottom: 15.h),
             itemBuilder: (context, index) => const _ChatItem(),
             separatorBuilder: (context, index) => SizedBox(height: 25.h),
             itemCount: 10,
@@ -32,7 +32,7 @@ class _ChatsTitleAndSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return Container(
@@ -207,7 +207,7 @@ class _ChatItemUserNameAndDate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return Row(
@@ -252,7 +252,7 @@ class _ChatItemLastMessageAndIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeColorsCubit>();
+    final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     return Row(

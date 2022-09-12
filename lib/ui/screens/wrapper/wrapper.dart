@@ -1,5 +1,5 @@
 import 'package:chat_app/domain/cubits/authentification_cubit.dart';
-import 'package:chat_app/ui/screens/log_in_screen/sign_in_screen.dart';
+import 'package:chat_app/ui/screens/sign_in_screen/sign_in_screen.dart';
 import 'package:chat_app/ui/screens/main_screen/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
