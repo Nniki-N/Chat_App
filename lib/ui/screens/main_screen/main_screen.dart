@@ -1,5 +1,5 @@
 import 'package:chat_app/domain/cubits/authentification_cubit.dart';
-import 'package:chat_app/domain/cubits/theme_colors_cubit.dart';
+import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/screens/main_screen/chats_page/chats_page.dart';
 import 'package:chat_app/ui/screens/main_screen/settings_page/settings_page.dart';

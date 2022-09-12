@@ -1,4 +1,4 @@
-import 'package:chat_app/domain/cubits/theme_colors_cubit.dart';
+import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';

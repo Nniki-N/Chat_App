@@ -1,4 +1,4 @@
-import 'package:chat_app/domain/cubits/theme_colors_cubit.dart';
+import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/ui/screens/chat_screen/bottom_field_and_button.dart';
 import 'package:chat_app/ui/screens/chat_screen/date_messages.dart';
 import 'package:chat_app/ui/screens/chat_screen/header.dart';
