@@ -5,6 +5,9 @@ class Svgs {
 
   static const String arrowLeft = 'assets/images/svg/arrow-left.svg';
   static const String camera = 'assets/images/svg/camera.svg';
+  static const String cross = 'assets/images/svg/cross.svg';
+  static const String defaultUserImage =
+      'assets/images/svg/default-user-image.svg';
   static const String edit = 'assets/images/svg/edit.svg';
   static const String magnifier = 'assets/images/svg/magnifier.svg';
   static const String microphone = 'assets/images/svg/microphone.svg';

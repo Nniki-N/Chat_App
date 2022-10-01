@@ -1,4 +1,5 @@
 import 'package:chat_app/domain/cubits/authentification_cubit.dart';
+import 'package:chat_app/domain/cubits/chats_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/screens/main_screen/chats_page/chats_page.dart';
@@ -27,34 +28,39 @@ class _MainScreenState extends State<MainScreen> {
     final authentificationCubit = context.watch<AuthentificationCubit>();
     final loading = authentificationCubit.loading;
 
-    return loading ? const LoadingPage() : Scaffold(
-      backgroundColor: themeColors.backgroundColor,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          Center(child: Text('Contacts')),
-          ChatsPage(),
-          Center(child: Text('Camera')),
-          SettingsPage(),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: themeColors.backgroundColor,
-          border: Border(top: BorderSide(color: themeColors.borderColor)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            _bottomNavigationBarItem(svgPath: Svgs.person, index: 0),
-            _bottomNavigationBarItem(svgPath: Svgs.people, index: 1),
-            _bottomNavigationBarItem(svgPath: Svgs.camera, index: 2),
-            _bottomNavigationBarItem(svgPath: Svgs.settings, index: 3),
-          ],
-        ),
-      ),
-    );
+    return loading
+        ? const LoadingPage()
+        : Scaffold(
+            backgroundColor: themeColors.backgroundColor,
+            body: IndexedStack(
+              index: _currentIndex,
+              children: [
+                const Center(child: Text('Contacts')),
+                BlocProvider(
+                  create: (context) => ChatsCubit(),
+                  child: const ChatsPage(),
+                ),
+                const Center(child: Text('Camera')),
+                const SettingsPage(),
+              ],
+            ),
+            bottomNavigationBar: Container(
+              decoration: BoxDecoration(
+                color: themeColors.backgroundColor,
+                border: Border(top: BorderSide(color: themeColors.borderColor)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _bottomNavigationBarItem(svgPath: Svgs.person, index: 0),
+                  _bottomNavigationBarItem(svgPath: Svgs.people, index: 1),
+                  _bottomNavigationBarItem(svgPath: Svgs.camera, index: 2),
+                  _bottomNavigationBarItem(svgPath: Svgs.settings, index: 3),
+                ],
+              ),
+            ),
+          );
   }
 
   GestureDetector _bottomNavigationBarItem(

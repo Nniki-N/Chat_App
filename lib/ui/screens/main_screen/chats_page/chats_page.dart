@@ -1,4 +1,6 @@
+import 'package:chat_app/domain/cubits/chats_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
+import 'package:chat_app/domain/entity/chat_model.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
@@ -11,18 +13,33 @@ class ChatsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const _ChatsTitleAndSearchField(),
-        Expanded(
-          child: ListView.separated(
-            padding: EdgeInsets.only(bottom: 15.h),
-            itemBuilder: (context, index) => const _ChatItem(),
-            separatorBuilder: (context, index) => SizedBox(height: 25.h),
-            itemCount: 10,
-          ),
-        )
-      ],
+    final chatsCubit = context.watch<ChatsCubit>();
+    final chatsStream = chatsCubit.chatsStream;
+    final chatsList = chatsCubit.getChatsList();
+
+    return StreamBuilder(
+      stream: chatsStream,
+      builder: (context, snapshot) {
+        return Column(
+          children: [
+            const _ChatsTitleAndSearchField(),
+            Expanded(
+              child: ListView.separated(
+                padding: EdgeInsets.only(bottom: 15.h),
+                itemBuilder: (context, index) {
+                  final chatModel = chatsList[index];
+
+                  return _ChatItem(
+                    chatModel: chatModel,
+                  );
+                },
+                separatorBuilder: (context, index) => SizedBox(height: 25.h),
+                itemCount: chatsList.length,
+              ),
+            )
+          ],
+        );
+      },
     );
   }
 }
@@ -54,7 +71,10 @@ class _ChatsTitleAndSearchField extends StatelessWidget {
                 height: 24.w,
                 width: 24.w,
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context)
+                        .pushNamed(MainNavigationRouteNames.newChatScreen);
+                  },
                   icon: SvgPicture.asset(
                     Svgs.edit,
                     color: themeColors.titleTextColor,
@@ -70,6 +90,7 @@ class _ChatsTitleAndSearchField extends StatelessWidget {
           _SearchField(
             cursorColor: themeColors.firstPrimaryColor,
             borderColor: themeColors.inactiveInputColor,
+            textColor: themeColors.titleTextColor,
           ),
         ],
       ),
@@ -82,18 +103,26 @@ class _SearchField extends StatelessWidget {
     Key? key,
     required this.cursorColor,
     required this.borderColor,
+    required this.textColor,
   }) : super(key: key);
 
   final Color cursorColor;
   final Color borderColor;
+  final Color textColor;
 
   @override
   Widget build(BuildContext context) {
+    final chatsCubit = context.watch<ChatsCubit>();
+
     return TextField(
       autocorrect: false,
       enableSuggestions: false,
       keyboardType: TextInputType.emailAddress,
       cursorColor: cursorColor,
+      onChanged: (text) => chatsCubit.setSearchText(text: text),
+      style: TextStyle(
+        color: textColor,
+      ),
       decoration: InputDecoration(
         hintText: 'Search here...',
         hintStyle: TextStyle(
@@ -132,29 +161,35 @@ class _SearchField extends StatelessWidget {
 class _ChatItem extends StatelessWidget {
   const _ChatItem({
     Key? key,
+    required this.chatModel,
   }) : super(key: key);
+
+  final ChatModel chatModel;
 
   @override
   Widget build(BuildContext context) {
-    const String avatarPath = Images.image;
-    const String userName = 'User name';
-    const String messageDate = '29 may';
-    const String lastMesssage =
-        'Are you ready for thoday\'s party in Toms home?';
-    const int unreadedMessagesCount = 4;
+    final chatsCubit = context.watch<ChatsCubit>();
+
+    final String? avatarPath = chatModel.chatImageUrl;
+    final String userName = chatModel.chatName;
+    final String messageDate =
+        chatsCubit.converDateInString(chatModel: chatModel);
+    final String lastMesssage = chatModel.lastMessage;
+    final int unreadedMessagesCount = chatModel.unreadMessagesCount;
 
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pushNamed(MainNavigationRouteNames.chatScreen);
-      },
+      onTap: () => chatsCubit.showChat(
+          context: context,
+          userId: chatModel.chatContactId,
+          chatModel: chatModel),
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 17.w),
         child: Row(
           children: [
-            const _ChatItemAvatar(avatarPath: avatarPath),
+            _ChatItemAvatar(avatarPath: avatarPath),
             Expanded(
               child: Column(
-                children: const [
+                children: [
                   _ChatItemUserNameAndDate(
                       userName: userName, messageDate: messageDate),
                   _ChatItemLastMessageAndIndicator(
@@ -176,7 +211,7 @@ class _ChatItemAvatar extends StatelessWidget {
     required this.avatarPath,
   }) : super(key: key);
 
-  final String avatarPath;
+  final String? avatarPath;
 
   @override
   Widget build(BuildContext context) {
@@ -184,13 +219,13 @@ class _ChatItemAvatar extends StatelessWidget {
       height: 50.h,
       width: 50.w,
       margin: EdgeInsets.only(right: 23.w),
-      decoration: BoxDecoration(
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        image: DecorationImage(
-          image: AssetImage(avatarPath),
-          fit: BoxFit.cover,
-        ),
       ),
+      child: avatarPath == null
+          ? SvgPicture.asset(Svgs.defaultUserImage)
+          : const Image(image: AssetImage(Images.image)),
     );
   }
 }
@@ -269,23 +304,25 @@ class _ChatItemLastMessageAndIndicator extends StatelessWidget {
             ),
           ),
         ),
-        Padding(
-            padding: EdgeInsets.only(left: 17.w),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.h),
-                color: themeColors.firstPrimaryColor,
-              ),
-              child: Text(
-                unreadedMessagesCount.toString(),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            )),
+        unreadedMessagesCount == 0
+            ? const SizedBox.shrink()
+            : Padding(
+                padding: EdgeInsets.only(left: 17.w),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20.h),
+                    color: themeColors.firstPrimaryColor,
+                  ),
+                  child: Text(
+                    unreadedMessagesCount.toString(),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                )),
       ],
     );
   }

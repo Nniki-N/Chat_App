@@ -1,20 +1,17 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:json_annotation/json_annotation.dart';
 
 part 'message_model.g.dart';
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class MessageModel {
-  final String messageId;
   final String message;
   final String senderId;
-  final DateTime time;
+  final DateTime messageTime;
 
   MessageModel({
-    required this.messageId,
     required this.message,
     required this.senderId,
-    required this.time,
+    required this.messageTime,
   });
 
   Map<String, dynamic> toJson() => _$MessageModelToJson(this);

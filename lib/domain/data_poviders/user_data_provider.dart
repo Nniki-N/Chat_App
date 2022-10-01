@@ -5,38 +5,43 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
-  Future<void> saveUserInFirebase(UserModel user) async {
-    try {
-      _firebaseFirestore
-          .collection(FirestoreConstants.pathUserCollection)
-          .doc(user.userId)
-          .set(user.toJson());
-    } catch (e) {
-      print(e);
-    }
+  Future<void> saveUserInFirebase({required UserModel user}) async {
+    _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(user.userId)
+        .set(user.toJson());
   }
 
-  Future<UserModel?> getUserFromFireBase(String userId) async {
-    try {
-      final snapshot = await _firebaseFirestore
-          .collection(FirestoreConstants.pathUserCollection)
-          .doc(userId)
-          .get();
+  Future<UserModel?> getUserFromFireBase({required String userId}) async {
+    final snapshot = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .get();
 
-      final json = snapshot.data();
-      if (json != null) return UserModel.fromJson(json);
-    } catch (e) {
-      print(e);
-    }
+    final json = snapshot.data();
+    if (json != null) return UserModel.fromJson(json);
 
     return null;
   }
 
-  Future<void> deleteUserFromFirebase(String userId) async {
-    try {
-      _firebaseFirestore.collection(FirestoreConstants.pathUserCollection).doc(userId).delete();
-    } catch (e) {
-      print(e);
-    }
+  Future<UserModel?> getUserByEmailFromFireBase({required String userEmail}) async {
+    final snapshot = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .where('user_email', isEqualTo: userEmail)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+
+    final json = snapshot.docs.first.data();
+    if (json != null) return UserModel.fromJson(json);
+
+    return null;
+  }
+
+  Future<void> deleteUserFromFirebase({required String userId}) async {
+    _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .delete();
   }
 }

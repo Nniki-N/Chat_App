@@ -1,25 +1,31 @@
-import 'package:chat_app/domain/cubits/theme_cubit.dart';
-import 'package:chat_app/ui/screens/chat_screen/bottom_field_and_button.dart';
-import 'package:chat_app/ui/screens/chat_screen/date_messages.dart';
-import 'package:chat_app/ui/screens/chat_screen/header.dart';
-import 'package:chat_app/ui/screens/chat_screen/messages_block.dart';
-import 'package:chat_app/ui/screens/chat_screen/my_messages_block.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:chat_app/domain/cubits/chat_cubit.dart';
+import 'package:chat_app/domain/entity/chat_configuration.dart';
+import 'package:chat_app/ui/screens/chat_screen/my_message_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+import 'package:chat_app/domain/cubits/theme_cubit.dart';
+import 'package:chat_app/ui/screens/chat_screen/bottom_field_and_button.dart';
+import 'package:chat_app/ui/screens/chat_screen/header.dart';
 
-  @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
+class ChatScreen extends StatelessWidget {
+  const ChatScreen({super.key, required this.configuration});
 
-class _ChatScreenState extends State<ChatScreen> {
+  final ChatConfiguration configuration;
+
   @override
   Widget build(BuildContext context) {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
+
+    final contactUser = configuration.user;
+    final chatModel = configuration.chat;
+
+    final chatCubit = context.watch<ChatCubit>();
+    final messagesStream = chatCubit.messagesStream;
+    final messagesList = chatCubit.messagesList;
 
     return Scaffold(
       body: Stack(
@@ -29,26 +35,27 @@ class _ChatScreenState extends State<ChatScreen> {
             left: 0,
             right: 0,
             bottom: 75.h,
-            child: Container(
-              color: themeColors.backgroundColor,
-              height: double.infinity,
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 17.w),
-              child: ListView(
-                children: const [
-                  MessagesBlock(),
-                  MyMessagesBlock(),
-                  MessagesDate(),
-                  MessagesBlock(),
-                ],
-              ),
+            child: StreamBuilder(
+              stream: messagesStream,
+              builder: (context, snapshot) {
+                return Container(
+                  color: themeColors.backgroundColor,
+                  height: double.infinity,
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(horizontal: 17.w),
+                  child: ListView.builder(
+                    reverse: true,
+                    itemBuilder: (context, index) => chatCubit.getMessage(messageModel: messagesList[messagesList.length - 1 -index]),
+                    itemCount: messagesList.length,
+                  ),
+                );
+              }
             ),
           ),
-          const Header(),
-          const BottomFieldAndButton(),
+          Header(contactUser: contactUser),
+          BottomFieldAndButton(chatModel: chatModel),
         ],
       ),
     );
   }
 }
-

@@ -1,4 +1,5 @@
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
+import 'package:chat_app/domain/entity/user_model.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 class Header extends StatelessWidget {
   const Header({
     Key? key,
+    required this.contactUser,
   }) : super(key: key);
+
+  final UserModel contactUser;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,10 @@ class Header extends StatelessWidget {
             SizedBox(width: 13.w),
             const _HeaderAvatar(),
             SizedBox(width: 16.w),
-            const _HeaderTitle(),
+            _HeaderTitle(
+              userName: contactUser.userName,
+              isOnline: contactUser.isOnline,
+            ),
             SizedBox(width: 16.w),
             const _HeaderCallButtons()
           ],
@@ -44,13 +51,10 @@ class Header extends StatelessWidget {
   }
 }
 
-
-
 class _HeaaderButtonBack extends StatelessWidget {
   const _HeaaderButtonBack({
     Key? key,
   }) : super(key: key);
-
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +65,8 @@ class _HeaaderButtonBack extends StatelessWidget {
       width: 17.w,
       height: 17.h,
       child: IconButton(
-        onPressed: () => Navigator.of(context).popAndPushNamed(MainNavigationRouteNames.mainScreen),
+        onPressed: () => Navigator.of(context)
+            .popAndPushNamed(MainNavigationRouteNames.mainScreen),
         icon: SvgPicture.asset(
           Svgs.arrowLeft,
           color: themeColors.titleTextColor,
@@ -73,6 +78,7 @@ class _HeaaderButtonBack extends StatelessWidget {
     );
   }
 }
+
 class _HeaderAvatar extends StatelessWidget {
   const _HeaderAvatar({
     Key? key,
@@ -83,21 +89,24 @@ class _HeaderAvatar extends StatelessWidget {
     return Container(
       height: 50.h,
       width: 50.w,
+      clipBehavior: Clip.hardEdge,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        image: DecorationImage(
-          image: AssetImage(Images.image),
-          fit: BoxFit.cover,
-        ),
       ),
+      child: SvgPicture.asset(Svgs.defaultUserImage),
     );
   }
 }
+
 class _HeaderTitle extends StatelessWidget {
   const _HeaderTitle({
     Key? key,
+    required this.userName,
+    required this.isOnline,
   }) : super(key: key);
 
+  final String userName;
+  final bool isOnline;
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +118,7 @@ class _HeaderTitle extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'User name',
+            userName,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: themeColors.titleTextColor,
@@ -120,7 +129,7 @@ class _HeaderTitle extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Active Now',
+                isOnline ? 'Active Now' : 'Not active',
                 style: TextStyle(
                   color: themeColors.secondTextColor,
                   fontSize: 10.sp,
@@ -135,7 +144,7 @@ class _HeaderTitle extends StatelessWidget {
                 height: 8.h,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: themeColors.firstPrimaryColor,
+                  color: isOnline ? themeColors.firstPrimaryColor : Colors.grey[700],
                 ),
               )
             ],
@@ -150,7 +159,6 @@ class _HeaderCallButtons extends StatelessWidget {
   const _HeaderCallButtons({
     Key? key,
   }) : super(key: key);
-
 
   @override
   Widget build(BuildContext context) {

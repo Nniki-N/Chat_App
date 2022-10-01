@@ -1,19 +1,32 @@
+import 'package:chat_app/domain/cubits/chat_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
+import 'package:chat_app/domain/entity/chat_model.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-class BottomFieldAndButton extends StatelessWidget {
+class BottomFieldAndButton extends StatefulWidget {
+  final ChatModel chatModel;
   const BottomFieldAndButton({
     Key? key,
+    required this.chatModel,
   }) : super(key: key);
+
+  @override
+  State<BottomFieldAndButton> createState() => _BottomFieldAndButtonState();
+}
+
+class _BottomFieldAndButtonState extends State<BottomFieldAndButton> {
+  final fieldController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
+
+    final chatCubit = context.watch<ChatCubit>();
 
     return Positioned(
       left: 0,
@@ -44,6 +57,8 @@ class BottomFieldAndButton extends StatelessWidget {
                   minLines: 1,
                   maxLines: 7,
                   cursorColor: themeColors.firstPrimaryColor,
+                  controller: fieldController,
+                  style: TextStyle(color: themeColors.titleTextColor),
                   decoration: InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
@@ -66,7 +81,13 @@ class BottomFieldAndButton extends StatelessWidget {
                 gradient: themeColors.primaryGradient,
               ),
               child: IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  if (fieldController.text.trim().isEmpty) return;
+
+                  chatCubit.sendMessage(
+                      text: fieldController.text, chatModel: widget.chatModel);
+                  fieldController.clear();
+                },
                 icon: SvgPicture.asset(
                   Svgs.send,
                   color: Colors.white,

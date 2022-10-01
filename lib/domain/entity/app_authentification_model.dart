@@ -5,7 +5,6 @@ class AppAuthentificationModel {
 
   AppAuthentificationModel({required this.userId, required this.isLoggedIn});
 
-
   AppAuthentificationModel copyWith({
     String? userId,
     bool? isLoggedIn,

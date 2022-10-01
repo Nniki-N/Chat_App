@@ -23,11 +23,13 @@ class MyApp extends StatelessWidget {
           providers: [
             BlocProvider(create: (context) => ThemeCubit()),
             BlocProvider(create: (context) => AuthentificationCubit()),
+            
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: ThemeData(fontFamily: 'Poppins'),
             routes: mainNavigation.routes,
+            onGenerateRoute: mainNavigation.onGenerateRoute,
             home: const Wrapper(),
           ),
         );

@@ -7,16 +7,14 @@ part of 'message_model.dart';
 // **************************************************************************
 
 MessageModel _$MessageModelFromJson(Map<String, dynamic> json) => MessageModel(
-      messageId: json['message_id'] as String,
       message: json['message'] as String,
       senderId: json['sender_id'] as String,
-      time: DateTime.parse(json['time'] as String),
+      messageTime: DateTime.parse(json['message_time'] as String),
     );
 
 Map<String, dynamic> _$MessageModelToJson(MessageModel instance) =>
     <String, dynamic>{
-      'message_id': instance.messageId,
       'message': instance.message,
       'sender_id': instance.senderId,
-      'time': instance.time.toIso8601String(),
+      'message_time': instance.messageTime.toIso8601String(),
     };

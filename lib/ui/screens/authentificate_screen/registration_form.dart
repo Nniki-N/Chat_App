@@ -91,9 +91,9 @@ class _RegistrationFormState extends State<RegistrationForm> {
               final password = passwordController.text;
 
               authentificationCubit.registerWithEmailAndPassword(
-                userName,
-                email,
-                password,
+                userName: userName,
+                email: email,
+                password: password,
               );
             },
           ),
