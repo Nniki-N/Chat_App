@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ChatsPage extends StatelessWidget {
   const ChatsPage({super.key});
@@ -15,11 +16,12 @@ class ChatsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final chatsCubit = context.watch<ChatsCubit>();
     final chatsStream = chatsCubit.chatsStream;
-    final chatsList = chatsCubit.getChatsList();
 
     return StreamBuilder(
       stream: chatsStream,
       builder: (context, snapshot) {
+        final chatsList = chatsCubit.getChatsList();
+
         return Column(
           children: [
             const _ChatsTitleAndSearchField(),
@@ -27,7 +29,7 @@ class ChatsPage extends StatelessWidget {
               child: ListView.separated(
                 padding: EdgeInsets.only(bottom: 15.h),
                 itemBuilder: (context, index) {
-                  final chatModel = chatsList[index];
+                  final chatModel = chatsList.elementAt(index);
 
                   return _ChatItem(
                     chatModel: chatModel,
@@ -119,7 +121,7 @@ class _SearchField extends StatelessWidget {
       enableSuggestions: false,
       keyboardType: TextInputType.emailAddress,
       cursorColor: cursorColor,
-      onChanged: (text) => chatsCubit.setSearchText(text: text),
+      onChanged: (text) => chatsCubit.setSearchText(searchText: text),
       style: TextStyle(
         color: textColor,
       ),
@@ -164,6 +166,8 @@ class _ChatItem extends StatelessWidget {
     required this.chatModel,
   }) : super(key: key);
 
+  void pushToChat() {}
+
   final ChatModel chatModel;
 
   @override
@@ -172,33 +176,55 @@ class _ChatItem extends StatelessWidget {
 
     final String? avatarPath = chatModel.chatImageUrl;
     final String userName = chatModel.chatName;
-    final String messageDate =
-        chatsCubit.converDateInString(chatModel: chatModel);
+    final String lastMessageTime =
+        chatsCubit.converDateInString(dateTime: chatModel.lastMessageTime);
     final String lastMesssage = chatModel.lastMessage;
     final int unreadedMessagesCount = chatModel.unreadMessagesCount;
 
-    return GestureDetector(
-      onTap: () => chatsCubit.showChat(
-          context: context,
-          userId: chatModel.chatContactId,
-          chatModel: chatModel),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 17.w),
-        child: Row(
-          children: [
-            _ChatItemAvatar(avatarPath: avatarPath),
-            Expanded(
-              child: Column(
-                children: [
-                  _ChatItemUserNameAndDate(
-                      userName: userName, messageDate: messageDate),
-                  _ChatItemLastMessageAndIndicator(
-                      lastMesssage: lastMesssage,
-                      unreadedMessagesCount: unreadedMessagesCount),
-                ],
-              ),
-            )
-          ],
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const ScrollMotion(),
+        children: [
+          SlidableAction(
+            flex: 1,
+            onPressed: (context) => chatsCubit.deleteChat(chatModel: chatModel),
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            icon: Icons.delete,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      child: GestureDetector(
+        onTap: () async {
+          final chatConfiguration = await chatsCubit.showChat(
+              contactUserId: chatModel.chatContactId, chatModel: chatModel);
+
+          if (chatConfiguration != null) {
+            Navigator.of(context).pushNamed(
+            MainNavigationRouteNames.chatScreen,
+            arguments: chatConfiguration,
+          );
+          }
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 17.w),
+          child: Row(
+            children: [
+              _ChatItemAvatar(avatarPath: avatarPath),
+              Expanded(
+                child: Column(
+                  children: [
+                    _ChatItemUserNameAndDate(
+                        userName: userName, messageDate: lastMessageTime),
+                    _ChatItemLastMessageAndIndicator(
+                        lastMesssage: lastMesssage,
+                        unreadedMessagesCount: unreadedMessagesCount),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -297,6 +323,7 @@ class _ChatItemLastMessageAndIndicator extends StatelessWidget {
           child: Text(
             lastMesssage,
             overflow: TextOverflow.ellipsis,
+            maxLines: 1,
             style: TextStyle(
               color: themeColors.unreadMessageTextColor,
               fontSize: 16.sp,

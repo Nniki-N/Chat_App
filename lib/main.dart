@@ -23,7 +23,9 @@ void main() async {
 
   const myApp = MyApp();
   HydratedBlocOverrides.runZoned(
-    () => runApp(myApp),
+    () => runApp(
+      myApp,
+    ),
     storage: storage,
   );
 }

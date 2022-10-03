@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class MessagesDate extends StatelessWidget {
-  const MessagesDate({
-    Key? key,
+class ChatDateSeparator extends StatelessWidget {
+  const ChatDateSeparator({
+    Key? key, required this.date,
   }) : super(key: key);
+
+  final String date;
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +17,7 @@ class MessagesDate extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       child: Text(
-        'Tuesday 07.09',
+        date,
         style: TextStyle(
           fontSize: 14.sp,
           color: themeColors.secondTextColor,

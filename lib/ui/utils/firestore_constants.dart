@@ -6,6 +6,7 @@ class FirestoreConstants {
 
   // user data fields
   static const userId = 'user_id';
+  static const userEmail = 'user_email';
   static const userName = 'user_name';
   static const userImageUrl = 'user_image_url';
   static const isOnline = 'is_online';
@@ -15,11 +16,13 @@ class FirestoreConstants {
   static const chatId = 'chat_id';
   static const chatName = 'chat_name';
   static const chatContactId = 'chat_contact_id';
+  static const chatImageUrl = 'chat_image_url';
+  static const lastMessage = 'last_message';
   static const unreadMessageCount = 'unread_messages_count';
   static const lastMessageTime = 'last_message_time';
+  static const chatCreatedTime = 'chat_created_time';
   
   // message data fields
-  static const messageId = 'message_id';
   static const message = 'message';
   static const senderId = 'sender_id';
   static const messageTime = 'message_time';

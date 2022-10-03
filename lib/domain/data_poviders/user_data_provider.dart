@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
+  // save user data or create new document and save data in firebase
   Future<void> saveUserInFirebase({required UserModel user}) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -12,6 +13,7 @@ class UserDataProvider {
         .set(user.toJson());
   }
 
+  // get user from firebase if user exists
   Future<UserModel?> getUserFromFireBase({required String userId}) async {
     final snapshot = await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -24,6 +26,7 @@ class UserDataProvider {
     return null;
   }
 
+  // get user from firebase by email if user exists
   Future<UserModel?> getUserByEmailFromFireBase({required String userEmail}) async {
     final snapshot = await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -33,11 +36,10 @@ class UserDataProvider {
     if (snapshot.docs.isEmpty) return null;
 
     final json = snapshot.docs.first.data();
-    if (json != null) return UserModel.fromJson(json);
-
-    return null;
+    return UserModel.fromJson(json);
   }
 
+  // delete user from firebase
   Future<void> deleteUserFromFirebase({required String userId}) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)

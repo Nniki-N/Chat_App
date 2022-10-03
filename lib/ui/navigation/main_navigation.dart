@@ -1,15 +1,18 @@
 import 'package:chat_app/domain/cubits/chat_cubit.dart';
 import 'package:chat_app/domain/cubits/chats_cubit.dart';
 import 'package:chat_app/domain/entity/chat_configuration.dart';
-import 'package:chat_app/ui/screens/authentificate_screen/authentificate_screen.dart';
+import 'package:chat_app/ui/screens/auth_screen/auth_screen.dart';
 import 'package:chat_app/ui/screens/chat_screen/chat_screen.dart';
+import 'package:chat_app/ui/screens/loading_screen/loading_screen.dart';
 import 'package:chat_app/ui/screens/main_screen/main_screen.dart';
 import 'package:chat_app/ui/screens/new_chat_screen/new_chat_screen.dart';
+import 'package:chat_app/ui/screens/non_existent_screen/non_existent_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MainNavigationRouteNames {
-  static const authentificationScreen = 'authentification';
+  static const initialScreen = '/';
+  static const authScreen = '/auth';
   static const mainScreen = '/main';
   static const newChatScreen = '/main/newChat';
   static const chatScreen = '/main/chat';
@@ -17,8 +20,8 @@ class MainNavigationRouteNames {
 
 class MainNavigation {
   final routes = <String, Widget Function(BuildContext)>{
-    MainNavigationRouteNames.authentificationScreen: (context) =>
-        const AuthentificationScreen(),
+    MainNavigationRouteNames.authScreen: (context) =>
+        const AuthScreen(),
     MainNavigationRouteNames.mainScreen: (context) => const MainScreen(),
     MainNavigationRouteNames.newChatScreen: (context) => BlocProvider(
           create: (context) => ChatsCubit(),
@@ -28,6 +31,8 @@ class MainNavigation {
 
   Route<Object>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case MainNavigationRouteNames.initialScreen:
+        return MaterialPageRoute(builder: (context) => const LoadingScrenn());
       case MainNavigationRouteNames.chatScreen:
         final configuration = settings.arguments as ChatConfiguration;
 
@@ -37,6 +42,9 @@ class MainNavigation {
             child: ChatScreen(configuration: configuration),
           ),
         );
+      default:
+        return MaterialPageRoute(
+            builder: (context) => const NonExistentScreen());
     }
   }
 }

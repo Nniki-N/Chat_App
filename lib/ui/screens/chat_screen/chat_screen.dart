@@ -1,7 +1,5 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:chat_app/domain/cubits/chat_cubit.dart';
 import 'package:chat_app/domain/entity/chat_configuration.dart';
-import 'package:chat_app/ui/screens/chat_screen/my_message_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,12 +18,10 @@ class ChatScreen extends StatelessWidget {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
-    final contactUser = configuration.user;
-    final chatModel = configuration.chat;
+    final contactUser = configuration.contactUser;
 
     final chatCubit = context.watch<ChatCubit>();
     final messagesStream = chatCubit.messagesStream;
-    final messagesList = chatCubit.messagesList;
 
     return Scaffold(
       body: Stack(
@@ -36,24 +32,30 @@ class ChatScreen extends StatelessWidget {
             right: 0,
             bottom: 75.h,
             child: StreamBuilder(
-              stream: messagesStream,
-              builder: (context, snapshot) {
-                return Container(
-                  color: themeColors.backgroundColor,
-                  height: double.infinity,
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 17.w),
-                  child: ListView.builder(
-                    reverse: true,
-                    itemBuilder: (context, index) => chatCubit.getMessage(messageModel: messagesList[messagesList.length - 1 -index]),
-                    itemCount: messagesList.length,
-                  ),
-                );
-              }
-            ),
+                stream: messagesStream,
+                builder: (context, snapshot) {
+                  final messagesList = chatCubit.messagesList;
+
+                  return Container(
+                    color: themeColors.backgroundColor,
+                    height: double.infinity,
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(horizontal: 17.w),
+                    child: ListView.separated(
+                      reverse: true,
+                      itemBuilder: (context, index) =>
+                          chatCubit.getMessageView(index: index) ??
+                          const SizedBox.shrink(),
+                      itemCount: messagesList.length,
+                      separatorBuilder: (BuildContext context, int index) =>
+                          chatCubit.getMessageDateView(index: index) ??
+                          const SizedBox.shrink(),
+                    ),
+                  );
+                }),
           ),
           Header(contactUser: contactUser),
-          BottomFieldAndButton(chatModel: chatModel),
+          const BottomFieldAndButton(),
         ],
       ),
     );

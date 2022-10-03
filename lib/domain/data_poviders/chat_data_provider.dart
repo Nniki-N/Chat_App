@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ChatDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
+  // save chat data or create new document and save data in firebase
   Future<void> saveChatInFirebase({
     required String userId,
     required ChatModel chat,
@@ -17,6 +18,7 @@ class ChatDataProvider {
         .set(chat.toJson());
   }
 
+  // get chat from firebase if it exists
   Future<ChatModel?> getChatFromFirebase({
     required String userId,
     required String chatId,
@@ -34,6 +36,7 @@ class ChatDataProvider {
     return null;
   }
 
+  // check if chat exists
   Future<bool> chatExists({
     required String userId,
     required String chatId,
@@ -45,11 +48,12 @@ class ChatDataProvider {
         .doc(chatId)
         .get();
 
-    if (!snapshot.exists || snapshot == null) return false;
+    if (snapshot.exists) return true;
 
-    return true;
+    return false;
   }
 
+  // get stream that notifies about any chat changes
   Stream<QuerySnapshot<Map<String, dynamic>>> getChatsStreamFromFirestore({
     required String userId,
   }) {
@@ -64,6 +68,7 @@ class ChatDataProvider {
     return snapshots;
   }
 
+  // delete chat from firebase
   Future<void> deleteChatFromFirebase({
     required String userId,
     required String chatId,

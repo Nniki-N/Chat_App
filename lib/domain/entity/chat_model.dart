@@ -12,6 +12,7 @@ class ChatModel {
   final String lastMessage;
   final int unreadMessagesCount;
   final DateTime lastMessageTime;
+  final DateTime chatCreatedTime;
 
   ChatModel({
     required this.chatId,
@@ -21,8 +22,9 @@ class ChatModel {
     required this.lastMessage,
     required this.unreadMessagesCount,
     required this.lastMessageTime,
+    required this.chatCreatedTime,
   });
-  
+
   ChatModel copyWith({
     String? chatId,
     String? chatName,
@@ -31,6 +33,7 @@ class ChatModel {
     String? lastMessage,
     int? unreadMessagesCount,
     DateTime? lastMessageTime,
+    DateTime? chatCreatedTime,
   }) {
     return ChatModel(
       chatId: chatId ?? this.chatId,
@@ -40,6 +43,7 @@ class ChatModel {
       lastMessage: lastMessage ?? this.lastMessage,
       unreadMessagesCount: unreadMessagesCount ?? this.unreadMessagesCount,
       lastMessageTime: lastMessageTime ?? this.lastMessageTime,
+      chatCreatedTime: chatCreatedTime ?? this.chatCreatedTime,
     );
   }
 
