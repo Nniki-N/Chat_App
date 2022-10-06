@@ -172,6 +172,9 @@ class _ChatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeColorsCubit = context.watch<ThemeCubit>();
+    final themeColors = themeColorsCubit.themeColors;
+
     final chatsCubit = context.watch<ChatsCubit>();
 
     final String? avatarPath = chatModel.chatImageUrl;
@@ -187,7 +190,77 @@ class _ChatItem extends StatelessWidget {
         children: [
           SlidableAction(
             flex: 1,
-            onPressed: (context) => chatsCubit.deleteChat(chatModel: chatModel),
+            onPressed: (context) {
+              // chatsCubit.deleteChat(chatModel: chatModel);
+
+
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return Dialog(
+                    insetPadding: EdgeInsets.symmetric(horizontal: 30.w),
+                    backgroundColor: Colors.transparent,
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: themeColors.backgroundColor,
+                          borderRadius: BorderRadius.circular(20.h)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              chatsCubit.deleteChatForCurrentUser(chatModel: chatModel);
+                              ///////////////////////////////////////////////////////////
+                              Navigator.of(context, rootNavigator: true).pop();
+                            },
+                            child: Container(
+                              padding: EdgeInsets.only(left: 35.w, top: 20.h, right: 35.w,  bottom: 10.h),
+                              width: double.infinity,
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Delete just for me',
+                                maxLines: 1,
+                                style: TextStyle(
+                                  fontSize: 18.sp,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Divider(
+                            color: themeColors.inactiveInputColor,
+                            height: 2.h,
+                          ),
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              chatsCubit.deleteChatForBoth(chatModel: chatModel);
+
+                              ///////////////////////////////////////////////////////
+                              Navigator.of(context, rootNavigator: true).pop();
+                            },
+                            child: Container(
+                              padding: EdgeInsets.only(left: 35.w, top: 10.h, right: 35.w,  bottom: 20.h),
+                              width: double.infinity,
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Delete for me and $userName',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 18.sp,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                });
+            },
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete,

@@ -6,10 +6,47 @@ class MessageDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
   // add new message in firebase
-  Future<void> addMessageInFirebase({
+  Future<void> addMessageToFirebase({
     required String userId,
     required String chatId,
-    required MessageModel message,
+    required MessageModel messageModel,
+  }) async {
+    final snapshot = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .collection(FirestoreConstants.pathChatCollection)
+        .doc(chatId)
+        .collection(FirestoreConstants.pathMessageCollection)
+        .add(messageModel.toJson());
+
+    await snapshot.update(messageModel.copyWith(messageId: snapshot.id).toJson());
+  }
+
+  Future<MessageModel?> getMessageFromFirebase({
+    required String userId,
+    required String chatId,
+    required String messageId,
+  }) async {
+    final snapshot = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .collection(FirestoreConstants.pathChatCollection)
+        .doc(chatId)
+        .collection(FirestoreConstants.pathMessageCollection)
+        .doc(messageId)
+        .get();
+
+    final json = snapshot.data();
+    if (json != null) return MessageModel.fromJson(json);
+
+    return null;
+  }
+
+  // update message data
+  Future<void> updateMessageInFirebase({
+    required String userId,
+    required String chatId,
+    required MessageModel messageModel,
   }) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -17,7 +54,8 @@ class MessageDataProvider {
         .collection(FirestoreConstants.pathChatCollection)
         .doc(chatId)
         .collection(FirestoreConstants.pathMessageCollection)
-        .add(message.toJson());
+        .doc(messageModel.messageId)
+        .update(messageModel.toJson());
   }
 
   // get stream that notifies about any message changes
@@ -58,5 +96,22 @@ class MessageDataProvider {
     }
 
     await batch.commit();
+  }
+
+  // delete message
+  Future<void> deleteMessage({
+    required String userId,
+    required String chatId,
+    required String messageId,
+  }) async {
+
+    await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .collection(FirestoreConstants.pathChatCollection)
+        .doc(chatId)
+        .collection(FirestoreConstants.pathMessageCollection)
+        .doc(messageId)
+        .delete();
   }
 }

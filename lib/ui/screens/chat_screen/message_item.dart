@@ -8,10 +8,12 @@ class MessageItem extends StatelessWidget {
     Key? key,
     required this.messageText,
     required this.messageDate,
+    required this.isEdited,
   }) : super(key: key);
 
   final String messageText;
   final String messageDate;
+  final bool isEdited;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +52,16 @@ class MessageItem extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  isEdited
+                      ? Text(
+                          'Edited',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: themeColors.secondPrimaryColor,
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                  isEdited ? SizedBox(width: 7.w) : const SizedBox.shrink(),
                   Text(
                     messageDate,
                     style: TextStyle(

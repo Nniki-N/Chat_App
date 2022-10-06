@@ -16,14 +16,13 @@ class BottomFieldAndButton extends StatefulWidget {
 }
 
 class _BottomFieldAndButtonState extends State<BottomFieldAndButton> {
-  final fieldController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
     final chatCubit = context.watch<ChatCubit>();
+    final messageFieldController = chatCubit.messageFieldController;
 
     return Positioned(
       left: 0,
@@ -54,7 +53,7 @@ class _BottomFieldAndButtonState extends State<BottomFieldAndButton> {
                   minLines: 1,
                   maxLines: 7,
                   cursorColor: themeColors.firstPrimaryColor,
-                  controller: fieldController,
+                  controller: messageFieldController,
                   style: TextStyle(color: themeColors.titleTextColor),
                   decoration: InputDecoration(
                     isDense: true,
@@ -79,11 +78,11 @@ class _BottomFieldAndButtonState extends State<BottomFieldAndButton> {
               ),
               child: IconButton(
                 onPressed: () {
-                  if (fieldController.text.trim().isEmpty) return;
+                  if (messageFieldController.text.trim().isEmpty) return;
 
                   chatCubit.sendMessage(
-                      text: fieldController.text);
-                  fieldController.clear();
+                      text: messageFieldController.text);
+                  messageFieldController.clear();
                 },
                 icon: SvgPicture.asset(
                   Svgs.send,

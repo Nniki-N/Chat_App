@@ -166,10 +166,10 @@ class ChatsCubit extends Cubit<ChatsState> {
     );
 
     // add chat to current user and contact user
-    await _chatDataProveder.saveChatInFirebase(
-        userId: currentUser.userId, chat: currentUserChat);
-    await _chatDataProveder.saveChatInFirebase(
-        userId: contactUser.userId, chat: contactUserChat);
+    await _chatDataProveder.addChatToFirebase(
+        userId: currentUser.userId, chatModel: currentUserChat);
+    await _chatDataProveder.addChatToFirebase(
+        userId: contactUser.userId, chatModel: contactUserChat);
 
     _setTextError('');
 
@@ -195,7 +195,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     return chatConfiguration;
   }
 
-  Future<void> deleteChat({required ChatModel chatModel}) async {
+  Future<void> deleteChatForBoth({required ChatModel chatModel}) async {
     final currentUser = state.currentUser;
 
     // stop if current user absents
@@ -215,6 +215,24 @@ class ChatsCubit extends Cubit<ChatsState> {
         userId: currentUser.userId, chatId: chatModel.chatId);
     await _chatDataProveder.deleteChatFromFirebase(
         userId: chatModel.chatContactId, chatId: currentUser.userId);
+  }
+
+  Future<void> deleteChatForCurrentUser({required ChatModel chatModel}) async {
+    final currentUser = state.currentUser;
+
+    // stop if current user absents
+    if (currentUser == null) {
+      _setTextError('You aren\'t signed in');
+      return;
+    }
+
+    // delete message
+    _messageDataProveder.deleteAllMessagesFromFirebase(
+        userId: currentUser.userId, chatId: chatModel.chatId);
+
+    // delete chat
+    await _chatDataProveder.deleteChatFromFirebase(
+        userId: currentUser.userId, chatId: chatModel.chatId);
   }
 
   // load chats list

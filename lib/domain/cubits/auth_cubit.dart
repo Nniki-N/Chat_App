@@ -69,7 +69,7 @@ class AuthCubit extends Cubit<AuthState> {
       final userModel = await _converFirebaseUserIntoUserModel(user: user);
       if (userModel != null) {
         // upload data of active status
-        _userDataProvider.saveUserInFirebase(
+        _userDataProvider.updateUserInFirebase(
             user: userModel.copyWith(isOnline: true, lastSeen: DateTime.now()));
 
         // notifies about changes
@@ -116,7 +116,7 @@ class AuthCubit extends Cubit<AuthState> {
       // if sign out is successful
       if (userModel != null) {
         // upload data of inactive status
-        _userDataProvider.saveUserInFirebase(
+        _userDataProvider.updateUserInFirebase(
             user:
                 userModel.copyWith(isOnline: false, lastSeen: DateTime.now()));
       }
@@ -163,7 +163,7 @@ class AuthCubit extends Cubit<AuthState> {
           user: user, userEmail: email, userName: userName);
       if (userModel != null) {
         // upload user's new data
-        _userDataProvider.saveUserInFirebase(user: userModel);
+        _userDataProvider.addUserToFirebase(user: userModel);
 
         // notifies about changes
         _setTextError('');

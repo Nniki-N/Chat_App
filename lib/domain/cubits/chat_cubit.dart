@@ -43,11 +43,13 @@ class ChatCubit extends Cubit<ChatState> {
   final _chatDataProveder = ChatDataProvider();
   final _messageDataProveder = MessageDataProvider();
 
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _messagesStreamSubscription;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _messagesStreamSubscription;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _messagesStream;
   Stream<QuerySnapshot<Map<String, dynamic>>>? get messagesStream =>
       _messagesStream;
 
+  final _messageIds = <String>{};
   final _messagesList = <MessageModel>[];
   Iterable<MessageModel> get messagesList sync* {
     for (var message in _messagesList) {
@@ -55,7 +57,9 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  DateTime lastMessageInListTime = DateTime.now();
+  final messageFieldController = TextEditingController();
+  bool _isMessageEditing = false;
+  String _editingMessageId = '';
 
   ChatCubit({required ChatModel chatModel})
       : super(ChatState(
@@ -80,8 +84,8 @@ class ChatCubit extends Cubit<ChatState> {
     ));
 
     // all messages are read
-    await _chatDataProveder.saveChatInFirebase(
-        userId: currentUser.userId, chat: state.currentChat);
+    await _chatDataProveder.updateChatInFirebase(
+        userId: currentUser.userId, chatModel: state.currentChat);
 
     // load messages
     _messagesStream = _messageDataProveder.getMessagesStreamFromFirebase(
@@ -94,11 +98,27 @@ class ChatCubit extends Cubit<ChatState> {
           final length = snapshot.docs.length;
 
           for (int i = 0; i < length; i++) {
+            // if message was added
+            if (_messageIds.contains(snapshot.docs[i].id)) continue;
+
             final messageModel = MessageModel.fromJson(snapshot.docs[i].data());
+            _messageIds.add(snapshot.docs[i].id);
             _messagesList.insert(0, messageModel);
           }
         } else {
-          final messageModel = MessageModel.fromJson(snapshot.docs.last.data());
+          // check if message ixists
+          final messageJson = snapshot.docChanges.last.doc.data();
+          if (messageJson == null) return;
+
+          final messageId = snapshot.docChanges.last.doc.id;
+
+          // check if message was edded
+          if (_messageIds.contains(messageId)) return;
+
+          final messageModel =
+              MessageModel.fromJson(messageJson).copyWith(messageId: messageId);
+
+          _messageIds.add(messageId);
           _messagesList.insert(0, messageModel);
         }
       },
@@ -114,22 +134,45 @@ class ChatCubit extends Cubit<ChatState> {
     // stop if current user absents
     if (currentUser == null) return;
 
-    final message = MessageModel(
+    // edit message if message is in editing
+    if (_isMessageEditing) {
+      final messageModel = await _messageDataProveder.getMessageFromFirebase(
+        userId: currentUser.userId,
+        chatId: state.currentChat.chatId,
+        messageId: _editingMessageId,
+      );
+
+      // stop if message doesn't exist
+      if (messageModel == null) {
+        // clear message edititng status
+        _isMessageEditing = false;
+        _editingMessageId = '';
+        return;
+      }
+
+      await editMessage(messageModel: messageModel, newText: text);
+
+      return;
+    }
+
+    final messageModel = MessageModel(
+      messageId: '',
       message: text,
       senderId: currentUser.userId,
       messageTime: DateTime.now(),
+      isEdited: false,
     );
 
     // send new messages
-    await _messageDataProveder.addMessageInFirebase(
+    await _messageDataProveder.addMessageToFirebase(
       userId: currentUser.userId,
       chatId: state.currentChat.chatId,
-      message: message,
+      messageModel: messageModel,
     );
-    await _messageDataProveder.addMessageInFirebase(
+    await _messageDataProveder.addMessageToFirebase(
       userId: state.currentChat.chatContactId,
       chatId: currentUser.userId,
-      message: message,
+      messageModel: messageModel,
     );
 
     // current user chat
@@ -146,9 +189,9 @@ class ChatCubit extends Cubit<ChatState> {
 
     // update current user chat
     if (currentUserChat != null) {
-      _chatDataProveder.saveChatInFirebase(
+      _chatDataProveder.updateChatInFirebase(
         userId: currentUser.userId,
-        chat: currentUserChat.copyWith(
+        chatModel: currentUserChat.copyWith(
           lastMessage: text,
           lastMessageTime: DateTime.now(),
         ),
@@ -157,17 +200,203 @@ class ChatCubit extends Cubit<ChatState> {
 
     // update conntact user chat
     if (contactUserChat != null) {
-      _chatDataProveder.saveChatInFirebase(
+      _chatDataProveder.updateChatInFirebase(
         userId: state.currentChat.chatContactId,
-        chat: contactUserChat.copyWith(
+        chatModel: contactUserChat.copyWith(
           lastMessage: text,
           lastMessageTime: DateTime.now(),
           unreadMessagesCount: contactUserChat.unreadMessagesCount + 1,
         ),
       );
+    } else { // if contact user chat was deleted
+      _chatDataProveder.addChatToFirebase(
+        userId: state.currentChat.chatContactId,
+        chatModel: ChatModel(
+          chatId: currentUser.userId,
+          chatName: currentUser.userName,
+          chatContactId: currentUser.userId,
+          chatCreatedTime: currentUserChat?.chatCreatedTime ?? DateTime.now(),
+          lastMessage: text,
+          lastMessageTime: DateTime.now(),
+          unreadMessagesCount: 1,
+        ),
+      );
+    }
+  }
+
+  // edit message
+  Future<void> editMessage({
+    required MessageModel messageModel,
+    required String newText,
+  }) async {
+    final currentUser = await _userDataProvider.getUserFromFireBase(
+        userId: _authDataProvider.getCurrentUserUID());
+
+    // stop if current user absents
+    if (currentUser == null) {
+      // clear message edititng status
+      _isMessageEditing = false;
+      _editingMessageId = '';
+      return;
     }
 
-    emit(state.copyWith());
+    // if nothing was changed
+    if (messageModel.message == newText || newText.isEmpty) {
+      // clear message edititng status
+      _isMessageEditing = false;
+      _editingMessageId = '';
+      return;
+    }
+
+    // update message in the list
+    final index = _messagesList
+        .indexWhere((element) => element.messageId == messageModel.messageId);
+    if (index != -1) {
+      _messagesList[index] =
+          _messagesList[index].copyWith(isEdited: true, message: newText);
+    }
+
+    // set new text and edited status
+    await _messageDataProveder.updateMessageInFirebase(
+      userId: currentUser.userId,
+      chatId: state.currentChat.chatId,
+      messageModel: messageModel.copyWith(message: newText, isEdited: true),
+    );
+
+    // update chats data if it is first message
+    if (_messagesList.first.messageId == messageModel.messageId) {
+      // current user chat
+      final currentUserChat = await _chatDataProveder.getChatFromFirebase(
+        userId: currentUser.userId,
+        chatId: state.currentChat.chatId,
+      );
+
+      // contact user chat
+      final contactUserChat = await _chatDataProveder.getChatFromFirebase(
+        userId: state.currentChat.chatContactId,
+        chatId: currentUser.userId,
+      );
+
+      // update current user chat
+      if (currentUserChat != null) {
+        _chatDataProveder.updateChatInFirebase(
+          userId: currentUser.userId,
+          chatModel: currentUserChat.copyWith(
+            lastMessage: newText,
+          ),
+        );
+      }
+
+      // update conntact user chat
+      if (contactUserChat != null) {
+        _chatDataProveder.updateChatInFirebase(
+          userId: state.currentChat.chatContactId,
+          chatModel: contactUserChat.copyWith(
+            lastMessage: newText,
+          ),
+        );
+      }
+    }
+
+    // clear message edititng status
+    messageFieldController.clear();
+    _isMessageEditing = false;
+    _editingMessageId = '';
+  }
+
+  // set stauts of message editing
+  void setEditingStatus({required String messageId}) {
+    _editingMessageId = messageId;
+    _isMessageEditing = true;
+  }
+
+  // delete message
+  Future<void> deleteMessage({required String messageId}) async {
+    if (messageId.isEmpty) return;
+
+    final currentUser = await _userDataProvider.getUserFromFireBase(
+        userId: _authDataProvider.getCurrentUserUID());
+
+    // stop if current user absents
+    if (currentUser == null) return;
+
+    // if message is first in list, update chat date also
+    if (messageId == _messagesList.first.messageId) {
+      _messagesList.removeAt(0);
+
+      // update data of current and contact user chats
+      if (_messagesList.isEmpty) {
+        // update current user chat
+        _chatDataProveder.updateChatInFirebase(
+          userId: currentUser.userId,
+          chatModel: state.currentChat.copyWith(
+            lastMessage: '',
+            lastMessageTime: DateTime.now(),
+          ),
+        );
+
+        final contactUserChat = await _chatDataProveder.getChatFromFirebase(
+          userId: state.currentChat.chatContactId,
+          chatId: currentUser.userId,
+        );
+
+        // stop if contact user chat absents
+        if (contactUserChat == null) return;
+
+        // update contact user chat
+        _chatDataProveder.updateChatInFirebase(
+          userId: state.currentChat.chatContactId,
+          chatModel: contactUserChat.copyWith(
+            lastMessage: '',
+            lastMessageTime: DateTime.now(),
+          ),
+        );
+      } else {
+        // update current user chat
+        _chatDataProveder.updateChatInFirebase(
+          userId: currentUser.userId,
+          chatModel: state.currentChat.copyWith(
+            lastMessage: _messagesList.first.message,
+            lastMessageTime: _messagesList.first.messageTime,
+          ),
+        );
+
+        final contactUserChat = await _chatDataProveder.getChatFromFirebase(
+          userId: state.currentChat.chatContactId,
+          chatId: currentUser.userId,
+        );
+
+        // stop if contact user chat absents
+        if (contactUserChat == null) return;
+
+        // update contact user chat
+        _chatDataProveder.updateChatInFirebase(
+          userId: state.currentChat.chatContactId,
+          chatModel: contactUserChat.copyWith(
+            lastMessage: '',
+            lastMessageTime: DateTime.now(),
+          ),
+        );
+      }
+
+      // delete message
+      await _messageDataProveder.deleteMessage(
+        userId: currentUser.userId,
+        chatId: state.currentChat.chatId,
+        messageId: messageId,
+      );
+    } else {
+      final index =
+          _messagesList.indexWhere((message) => message.messageId == messageId);
+      _messagesList.removeAt(index);
+
+      // delete message
+      await _messageDataProveder.deleteMessage(
+        userId: currentUser.userId,
+        chatId: state.currentChat.chatId,
+        messageId: messageId,
+      );
+    }
   }
 
   // get widget view of message
@@ -185,10 +414,10 @@ class ChatCubit extends Cubit<ChatState> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ChatDateSeparator(date: _getMessageDate(date: messageModel.messageTime)),
+            ChatDateSeparator(
+                date: getMessageDate(date: messageModel.messageTime)),
             MyMessageItem(
-              messageText: messageModel.message,
-              messageDate: _getMessageTime(time: messageModel.messageTime),
+              messageModel: messageModel,
             ),
           ],
         );
@@ -196,10 +425,12 @@ class ChatCubit extends Cubit<ChatState> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ChatDateSeparator(date: _getMessageDate(date: messageModel.messageTime)),
+            ChatDateSeparator(
+                date: getMessageDate(date: messageModel.messageTime)),
             MessageItem(
               messageText: messageModel.message,
-              messageDate: _getMessageTime(time: messageModel.messageTime),
+              messageDate: getMessageTime(time: messageModel.messageTime),
+              isEdited: messageModel.isEdited ?? false,
             ),
           ],
         );
@@ -209,13 +440,13 @@ class ChatCubit extends Cubit<ChatState> {
     // return message
     if (messageModel.senderId == currentUser.userId) {
       return MyMessageItem(
-        messageText: messageModel.message,
-        messageDate: _getMessageTime(time: messageModel.messageTime),
+        messageModel: messageModel,
       );
     } else {
       return MessageItem(
         messageText: messageModel.message,
-        messageDate: _getMessageTime(time: messageModel.messageTime),
+        messageDate: getMessageTime(time: messageModel.messageTime),
+        isEdited: messageModel.isEdited ?? false,
       );
     }
   }
@@ -239,7 +470,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   // get message date in format day and month
-  String _getMessageDate({required DateTime date}) {
+  String getMessageDate({required DateTime date}) {
     if (date.year != DateTime.now().year) {
       return DateFormat("d MMM yyyy").format(date);
     } else {
@@ -248,7 +479,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   // get message time in gormat hours and minutes
-  String _getMessageTime({required DateTime time}) =>
+  String getMessageTime({required DateTime time}) =>
       DateFormat("hh:mm").format(time);
 
   @override

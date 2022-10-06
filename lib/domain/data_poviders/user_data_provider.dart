@@ -6,7 +6,14 @@ class UserDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
   // save user data or create new document and save data in firebase
-  Future<void> saveUserInFirebase({required UserModel user}) async {
+  Future<void> updateUserInFirebase({required UserModel user}) async {
+    _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(user.userId)
+        .update(user.toJson());
+  }
+
+    Future<void> addUserToFirebase({required UserModel user}) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
         .doc(user.userId)

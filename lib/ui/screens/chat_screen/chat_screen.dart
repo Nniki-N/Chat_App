@@ -22,6 +22,7 @@ class ChatScreen extends StatelessWidget {
 
     final chatCubit = context.watch<ChatCubit>();
     final messagesStream = chatCubit.messagesStream;
+    final messagesList = chatCubit.messagesList;
 
     return Scaffold(
       body: Stack(
@@ -34,7 +35,6 @@ class ChatScreen extends StatelessWidget {
             child: StreamBuilder(
                 stream: messagesStream,
                 builder: (context, snapshot) {
-                  final messagesList = chatCubit.messagesList;
 
                   return Container(
                     color: themeColors.backgroundColor,

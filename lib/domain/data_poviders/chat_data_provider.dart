@@ -5,17 +5,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ChatDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
-  // save chat data or create new document and save data in firebase
-  Future<void> saveChatInFirebase({
+  // update chat data in firebase
+  Future<void> updateChatInFirebase({
     required String userId,
-    required ChatModel chat,
+    required ChatModel chatModel,
   }) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
         .doc(userId)
         .collection(FirestoreConstants.pathChatCollection)
-        .doc(chat.chatId)
-        .set(chat.toJson());
+        .doc(chatModel.chatId)
+        .set(chatModel.toJson());
+  }
+
+  // add chat to firebase
+  Future<void> addChatToFirebase({
+    required String userId,
+    required ChatModel chatModel,
+  }) async {
+    _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .collection(FirestoreConstants.pathChatCollection)
+        .doc(chatModel.chatId)
+        .set(chatModel.toJson());
   }
 
   // get chat from firebase if it exists
