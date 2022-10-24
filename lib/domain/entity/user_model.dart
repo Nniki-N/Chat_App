@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_model.g.dart';
@@ -7,6 +8,7 @@ class UserModel {
   final String userId;
   final String userEmail;
   final String userName;
+  final String userLogin;
   final String? userImageUrl;
   final bool isOnline;
   final DateTime lastSeen;
@@ -15,6 +17,7 @@ class UserModel {
     required this.userId,
     required this.userEmail,
     required this.userName,
+    required this.userLogin,
     this.userImageUrl,
     this.isOnline = true,
     DateTime? lastSeen,
@@ -24,6 +27,7 @@ class UserModel {
     String? userId,
     String? userEmail,
     String? userName,
+    String? userLogin,
     String? userImageUrl,
     bool? isOnline,
     DateTime? lastSeen,
@@ -32,6 +36,7 @@ class UserModel {
       userId: userId ?? this.userId,
       userEmail: userEmail ?? this.userEmail,
       userName: userName ?? this.userName,
+      userLogin: userLogin ?? this.userLogin,
       userImageUrl: userImageUrl ?? this.userImageUrl,
       isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
@@ -42,5 +47,4 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) =>
       _$UserModelFromJson(json);
-
 }

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class MessageItem extends StatelessWidget {
-  const MessageItem({
+class TextMessageItem extends StatelessWidget {
+  const TextMessageItem({
     Key? key,
     required this.messageText,
     required this.messageDate,

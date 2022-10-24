@@ -1,10 +1,10 @@
+import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
 import 'package:chat_app/ui/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../domain/cubits/theme_cubit.dart';
 
 class NonExistentScreen extends StatelessWidget {
   const NonExistentScreen({super.key});
@@ -22,7 +22,7 @@ class NonExistentScreen extends StatelessWidget {
             Text(
               'This screen doesn\'t exists',
               style: TextStyle(
-                color: themeColors.titleTextColor,
+                color: themeColors.mainColor,
                 fontSize: 20.sp,
               ),
             ),

@@ -13,7 +13,7 @@ class UserDataProvider {
         .update(user.toJson());
   }
 
-    Future<void> addUserToFirebase({required UserModel user}) async {
+  Future<void> addUserToFirebase({required UserModel user}) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
         .doc(user.userId)
@@ -21,7 +21,7 @@ class UserDataProvider {
   }
 
   // get user from firebase if user exists
-  Future<UserModel?> getUserFromFireBase({required String userId}) async {
+  Future<UserModel?> getUserFromFireBase({required String? userId}) async {
     final snapshot = await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
         .doc(userId)
@@ -33,11 +33,39 @@ class UserDataProvider {
     return null;
   }
 
+  // get stream that notifies about user changes
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getUserStreamFromFiebase({
+    required String userId,
+  }) {
+    final Stream<DocumentSnapshot<Map<String, dynamic>>> snapshots =
+        _firebaseFirestore
+            .collection(FirestoreConstants.pathUserCollection)
+            .doc(userId)
+            .snapshots();
+
+    return snapshots;
+  }
+
   // get user from firebase by email if user exists
-  Future<UserModel?> getUserByEmailFromFireBase({required String userEmail}) async {
+  Future<UserModel?> getUserByEmailFromFireBase(
+      {required String userEmail}) async {
     final snapshot = await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
         .where('user_email', isEqualTo: userEmail)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+
+    final json = snapshot.docs.first.data();
+    return UserModel.fromJson(json);
+  }
+
+  // get user from firebase by login if user exists
+  Future<UserModel?> getUserByLoginFromFireBase(
+      {required String userLogin}) async {
+    final snapshot = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .where('user_login', isEqualTo: userLogin)
         .get();
 
     if (snapshot.docs.isEmpty) return null;

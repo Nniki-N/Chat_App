@@ -18,7 +18,7 @@ class SignInForm extends StatefulWidget {
 
 class _SignInFormState extends State<SignInForm> {
   final _formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController();
+  final emailOrLoginController = TextEditingController();
   final passwordController = TextEditingController();
 
   @override
@@ -47,7 +47,7 @@ class _SignInFormState extends State<SignInForm> {
                     style: TextStyle(
                       fontSize: 26.sp,
                       fontWeight: FontWeight.w700,
-                      color: themeColors.titleTextColor,
+                      color: themeColors.mainColor,
                     ),
                   ),
                   CustomTextButton(
@@ -62,9 +62,9 @@ class _SignInFormState extends State<SignInForm> {
               ),
               SizedBox(height: 20.h),
               CustomTextFormField(
-                hintText: 'E-mail',
-                validatorText: 'Please enter your E-mail',
-                controller: emailController,
+                hintText: 'E-mail or Login',
+                validatorText: 'Please enter your E-mail or login',
+                controller: emailOrLoginController,
                 obscureText: false,
               ),
               SizedBox(height: 20.h),
@@ -82,11 +82,11 @@ class _SignInFormState extends State<SignInForm> {
                   final form = _formKey.currentState;
                   if (!form!.validate()) return;
 
-                  final email = emailController.text;
+                  final emailOrLogin = emailOrLoginController.text;
                   final password = passwordController.text;
 
                   authCubit.signInWithEmailAndPassword(
-                    email: email,
+                    emailOrLogin: emailOrLogin,
                     password: password,
                   );
                 },

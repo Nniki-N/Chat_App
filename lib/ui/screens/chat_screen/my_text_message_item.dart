@@ -1,17 +1,18 @@
 import 'package:chat_app/domain/cubits/chat_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
-import 'package:chat_app/domain/entity/message_model.dart';
+import 'package:chat_app/domain/entity/text_message_model.dart';
+import 'package:chat_app/ui/widgets/pop_up_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-class MyMessageItem extends StatelessWidget {
-  const MyMessageItem({
+class MyTextMessageItem extends StatelessWidget {
+  const MyTextMessageItem({
     Key? key,
-    required this.messageModel,
+    required this.textMessageModel,
   }) : super(key: key);
 
-  final MessageModel messageModel;
+  final TextMessageModel textMessageModel;
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +48,8 @@ class MyMessageItem extends StatelessWidget {
                               final messageFieldController =
                                   chatCubit.messageFieldController;
 
-                              messageFieldController.text = messageModel.message;
-                              chatCubit.setEditingStatus(messageId: messageModel.messageId);
+                              messageFieldController.text = textMessageModel.message;
+                              chatCubit.changeEditingStatus(isEditing: true, messageId: textMessageModel.messageId);
                               Navigator.of(context, rootNavigator: true).pop();
                             },
                             child: Container(
@@ -59,19 +60,16 @@ class MyMessageItem extends StatelessWidget {
                                 'Edit',
                                 style: TextStyle(
                                   fontSize: 18.sp,
-                                  color: themeColors.titleTextColor,
+                                  color: themeColors.mainColor,
                                 ),
                               ),
                             ),
                           ),
-                          Divider(
-                            color: themeColors.inactiveInputColor,
-                            height: 2.h,
-                          ),
+                          PopUpDivider(color: themeColors.popUpDividerColor),
                           GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
-                              chatCubit.deleteMessage(messageId: messageModel.messageId);
+                              chatCubit.deleteMessage(messageId: textMessageModel.messageId);
                               Navigator.of(context, rootNavigator: true).pop();
                             },
                             child: Container(
@@ -108,7 +106,7 @@ class MyMessageItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  messageModel.message,
+                  textMessageModel.message,
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: themeColors.myMessageTextColor,
@@ -119,7 +117,7 @@ class MyMessageItem extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    messageModel.isEdited ?? false
+                    textMessageModel.isEdited ?? false
                         ? Text(
                             'Edited',
                             style: TextStyle(
@@ -128,9 +126,9 @@ class MyMessageItem extends StatelessWidget {
                             ),
                           )
                         : const SizedBox.shrink(),
-                    messageModel.isEdited ?? false ? SizedBox(width: 7.w) : const SizedBox.shrink(),
+                    textMessageModel.isEdited ?? false ? SizedBox(width: 7.w) : const SizedBox.shrink(),
                     Text(
-                      chatCubit.getMessageTime(time: messageModel.messageTime),
+                      chatCubit.getMessageTime(time: textMessageModel.messageTime),
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: themeColors.secondPrimaryColor,

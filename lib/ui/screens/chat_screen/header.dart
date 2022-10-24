@@ -1,7 +1,6 @@
+import 'package:chat_app/domain/cubits/chat_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
-import 'package:chat_app/domain/entity/user_model.dart';
 import 'package:chat_app/resources/resources.dart';
-import 'package:chat_app/ui/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,10 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 class Header extends StatelessWidget {
   const Header({
     Key? key,
-    required this.contactUser,
   }) : super(key: key);
-
-  final UserModel contactUser;
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +25,26 @@ class Header extends StatelessWidget {
         decoration: BoxDecoration(
           color: themeColors.backgroundColor,
           border: Border(
-            bottom: BorderSide(color: themeColors.borderColor),
+            bottom: BorderSide(color: themeColors.chatHeaderBorderColor),
           ),
         ),
         child: Row(
           children: [
             const _HeaaderButtonBack(),
             SizedBox(width: 13.w),
-            const _HeaderAvatar(),
+            BlocBuilder<ChatCubit, ChatState>(
+              builder: (context, state) {
+                return _HeaderAvatar(avatarUrl: state.currentChat.chatImageUrl);
+              },
+            ),
             SizedBox(width: 16.w),
-            _HeaderTitle(
-              userName: contactUser.userName,
-              isOnline: contactUser.isOnline,
+            BlocBuilder<ChatCubit, ChatState>(
+              builder: (context, state) {
+                return _HeaderTitle(
+                  userName: state.currentChat.chatName,
+                  isOnline: state.currentChat.isChatContactUserOline,
+                );
+              },
             ),
             SizedBox(width: 16.w),
             const _HeaderCallButtons()
@@ -66,10 +70,10 @@ class _HeaaderButtonBack extends StatelessWidget {
       height: 17.h,
       child: IconButton(
         onPressed: () => Navigator.of(context)
-            .popAndPushNamed(MainNavigationRouteNames.mainScreen),
+            .pop(),
         icon: SvgPicture.asset(
           Svgs.arrowLeft,
-          color: themeColors.titleTextColor,
+          color: themeColors.mainColor,
         ),
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
@@ -81,8 +85,10 @@ class _HeaaderButtonBack extends StatelessWidget {
 
 class _HeaderAvatar extends StatelessWidget {
   const _HeaderAvatar({
-    Key? key,
+    Key? key, required this.avatarUrl,
   }) : super(key: key);
+
+  final String? avatarUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +99,9 @@ class _HeaderAvatar extends StatelessWidget {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
       ),
-      child: SvgPicture.asset(Svgs.defaultUserImage),
+      child: avatarUrl == null || avatarUrl!.trim().isEmpty
+          ? SvgPicture.asset(Svgs.defaultUserImage)
+          : Image.network(avatarUrl!, fit: BoxFit.cover,),
     );
   }
 }
@@ -121,7 +129,7 @@ class _HeaderTitle extends StatelessWidget {
             userName,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: themeColors.titleTextColor,
+              color: themeColors.mainColor,
               fontSize: 18.sp,
               fontWeight: FontWeight.w500,
             ),
@@ -144,7 +152,9 @@ class _HeaderTitle extends StatelessWidget {
                 height: 8.h,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isOnline ? themeColors.firstPrimaryColor : Colors.grey[700],
+                  color: isOnline
+                      ? themeColors.firstPrimaryColor
+                      : Colors.grey[700],
                 ),
               )
             ],
@@ -174,7 +184,7 @@ class _HeaderCallButtons extends StatelessWidget {
             onPressed: () {},
             icon: SvgPicture.asset(
               Svgs.phone,
-              color: themeColors.titleTextColor,
+              color: themeColors.mainColor,
             ),
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,
@@ -189,7 +199,7 @@ class _HeaderCallButtons extends StatelessWidget {
             onPressed: () {},
             icon: SvgPicture.asset(
               Svgs.videoPhone,
-              color: themeColors.titleTextColor,
+              color: themeColors.mainColor,
             ),
             splashColor: Colors.transparent,
             highlightColor: Colors.transparent,

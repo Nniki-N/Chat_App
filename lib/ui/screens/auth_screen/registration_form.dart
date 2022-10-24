@@ -21,6 +21,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
 
   final userNameController = TextEditingController();
   final emailController = TextEditingController();
+  final userLoginController = TextEditingController();
   final passwordController = TextEditingController();
 
   @override
@@ -49,7 +50,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
                     style: TextStyle(
                       fontSize: 26.sp,
                       fontWeight: FontWeight.w700,
-                      color: themeColors.titleTextColor,
+                      color: themeColors.mainColor,
                     ),
                   ),
                   CustomTextButton(
@@ -76,6 +77,14 @@ class _RegistrationFormState extends State<RegistrationForm> {
                 controller: emailController,
                 obscureText: false,
               ),
+              SizedBox(height: 25.h),
+              CustomTextFormField(
+                hintText: 'Login',
+                validatorText: 'Please enter your login',
+                controller: userLoginController,
+                obscureText: false,
+                prefixText: '@ ',
+              ),
               SizedBox(height: 20.h),
               CustomTextFormField(
                 hintText: 'Password',
@@ -93,12 +102,14 @@ class _RegistrationFormState extends State<RegistrationForm> {
 
                   final userName = userNameController.text;
                   final email = emailController.text;
+                  final userLogin = '@${userLoginController.text}';
                   final password = passwordController.text;
 
                   authCubit.registerWithEmailAndPassword(
                     userName: userName,
                     email: email,
                     password: password,
+                    userLogin: userLogin,
                   );
                 },
               ),

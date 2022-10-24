@@ -11,20 +11,16 @@ import 'package:chat_app/domain/entity/chat_model.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
 
 class ChatsState {
-  final bool loading;
   final UserModel? currentUser;
 
   ChatsState({
-    required this.loading,
     required this.currentUser,
   });
 
   ChatsState copyWith({
-    bool? loading,
     UserModel? currentUser,
   }) {
     return ChatsState(
-      loading: loading ?? this.loading,
       currentUser: currentUser ?? this.currentUser,
     );
   }
@@ -37,7 +33,8 @@ class ChatsCubit extends Cubit<ChatsState> {
   final _messageDataProveder = MessageDataProvider();
 
   // check chats changes
-  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _chatsStreamSubscriprion;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
+      _chatsStreamSubscriprion;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _chatsStream;
   Stream<QuerySnapshot<Map<String, dynamic>>>? get chatsStream => _chatsStream;
 
@@ -45,17 +42,18 @@ class ChatsCubit extends Cubit<ChatsState> {
   final _errorTextStreamController = StreamController<String>();
   StreamSubscription<String>? _errorTextStreamSubscription;
   Stream<String>? _errorTextStream;
-
   Stream<String>? get errorTextStream => _errorTextStream;
 
   final _fullChatsList = <ChatModel>[];
 
   // is used to display status for user
+  bool _loading = false;
   String _searchText = '';
   String _errorText = '';
   String get errorText => _errorText;
+  bool get loading => _loading;
 
-  ChatsCubit() : super(ChatsState(loading: false, currentUser: null)) {
+  ChatsCubit() : super(ChatsState(currentUser: null)) {
     _initialize();
   }
 
@@ -69,8 +67,8 @@ class ChatsCubit extends Cubit<ChatsState> {
       return;
     }
 
-    // load current user state and show loading
-    emit(state.copyWith(loading: true, currentUser: currentUser));
+    // load current user state
+    emit(state.copyWith(currentUser: currentUser));
 
     // check changes in chats
     _chatsStream = _chatDataProveder
@@ -91,91 +89,90 @@ class ChatsCubit extends Cubit<ChatsState> {
     _errorTextStreamSubscription = _errorTextStream?.listen((value) {
       _errorText = value;
     });
-
-    // hide loading
-    emit(state.copyWith(loading: false));
   }
 
   // create new chat
-  Future<bool> createNewChat({required String userEmail}) async {
-    final currentUser = state.currentUser;
+  Future<bool> createNewChat({required String userLogin}) async {
+    try {
+      // show loading
+      _loading = true;
+      emit(state.copyWith());
 
-    // stop if current user absents
-    if (currentUser == null) {
-      _setTextError('You aren\'t signed in');
+      final currentUser = state.currentUser;
+
+      // stop if current user absents
+      if (currentUser == null) {
+        _setTextError('You aren\'t signed in');
+        return false;
+      }
+
+      // stop if is's current user
+      if (userLogin == currentUser.userLogin) {
+        _setTextError('This\'s your Login');
+        return false;
+      }
+
+      // user we want to contact
+      UserModel? contactUser = await _userDataProvider
+          .getUserByLoginFromFireBase(userLogin: userLogin);
+
+      // stop if user doesn't exist
+      if (contactUser == null) {
+        _setTextError('User with this Login doesn\'t exist');
+        return false;
+      }
+
+      // check if chat exists
+      final chatExist = await _chatDataProveder.chatExists(
+          userId: currentUser.userId, chatId: contactUser.userId);
+
+      if (chatExist) {
+        _setTextError('This chat already exists');
+        return false;
+      }
+
+      // create chat model for contact user
+      ChatModel contactUserChat = ChatModel(
+        chatId: currentUser.userId,
+        chatName: currentUser.userName,
+        chatContactUserId: currentUser.userId,
+        chatImageUrl: currentUser.userImageUrl,
+        isChatContactUserOline: currentUser.isOnline,
+        lastMessage: '',
+        unreadMessagesCount: 0,
+        chatCreatedTime: DateTime.now(),
+        lastMessageTime: DateTime.now(),
+      );
+
+      // create chat model for current user
+      ChatModel currentUserChat = ChatModel(
+        chatId: contactUser.userId,
+        chatName: contactUser.userName,
+        chatContactUserId: contactUser.userId,
+        chatImageUrl: contactUser.userImageUrl,
+        isChatContactUserOline: contactUser.isOnline,
+        lastMessage: '',
+        unreadMessagesCount: 0,
+        chatCreatedTime: DateTime.now(),
+        lastMessageTime: DateTime.now(),
+      );
+
+      // add chat to current user and contact user
+      await _chatDataProveder.addChatToFirebase(
+          userId: currentUser.userId, chatModel: currentUserChat);
+      await _chatDataProveder.addChatToFirebase(
+          userId: contactUser.userId, chatModel: contactUserChat);
+
+      _setTextError('');
+      return true;
+    } catch (e) {
+      _setTextError('Some error happened');
       return false;
-    }
-
-    // show loading
-    emit(state.copyWith(loading: true));
-
-    // stop if is's current user
-    if (userEmail == currentUser.userEmail) {
-      _setTextError('This\'s your E-mail');
-
+    } finally {
       // hide loading
-      emit(state.copyWith(loading: false));
-      return false;
+      _loading = false;
+      emit(state.copyWith());
     }
-
-    // user we want to contact
-    UserModel? contactUser = await _userDataProvider.getUserByEmailFromFireBase(
-        userEmail: userEmail);
-
-    // stop if user doesn't exist
-    if (contactUser == null) {
-      _setTextError('User with this E-mail doesn\'t exist');
-
-      // hide loading
-      emit(state.copyWith(loading: false));
-      return false;
-    }
-
-    // check if chat exists
-    final chatExist = await _chatDataProveder.chatExists(
-        userId: currentUser.userId, chatId: contactUser.userId);
-
-    if (chatExist) {
-      _setTextError('This chat already exists');
-
-      // hide loading
-      emit(state.copyWith(loading: false));
-      return false;
-    }
-
-    // create chat model for contact user
-    ChatModel contactUserChat = ChatModel(
-      chatId: currentUser.userId,
-      chatName: currentUser.userName,
-      chatContactId: currentUser.userId,
-      lastMessage: '',
-      unreadMessagesCount: 0,
-      chatCreatedTime: DateTime.now(),
-      lastMessageTime: DateTime.now(),
-    );
-
-    // create chat model for current user
-    ChatModel currentUserChat = ChatModel(
-      chatId: contactUser.userId,
-      chatName: contactUser.userName,
-      chatContactId: contactUser.userId,
-      lastMessage: '',
-      unreadMessagesCount: 0,
-      chatCreatedTime: DateTime.now(),
-      lastMessageTime: DateTime.now(),
-    );
-
-    // add chat to current user and contact user
-    await _chatDataProveder.addChatToFirebase(
-        userId: currentUser.userId, chatModel: currentUserChat);
-    await _chatDataProveder.addChatToFirebase(
-        userId: contactUser.userId, chatModel: contactUserChat);
-
-    _setTextError('');
-
-    // hide loading
-    emit(state.copyWith(loading: false));
-    return true;
   }
 
   // show chat
@@ -189,50 +186,60 @@ class ChatsCubit extends Cubit<ChatsState> {
     // stop if contact user doesn't exist
     if (contactUser == null) return null;
 
-    final chatConfiguration =
-        ChatConfiguration(contactUser: contactUser, chat: chatModel);
+    final chatConfiguration = ChatConfiguration(
+      contactUser: contactUser,
+      chat: chatModel.copyWith(chatImageUrl: contactUser.userImageUrl),
+    );
 
     return chatConfiguration;
   }
 
   Future<void> deleteChatForBoth({required ChatModel chatModel}) async {
-    final currentUser = state.currentUser;
+    try {
+      final currentUser = state.currentUser;
 
-    // stop if current user absents
-    if (currentUser == null) {
-      _setTextError('You aren\'t signed in');
-      return;
+      // stop if current user absents
+      if (currentUser == null) {
+        _setTextError('You aren\'t signed in');
+        return;
+      }
+
+      // delete messages
+      _messageDataProveder.deleteAllMessagesFromFirebase(
+          userId: currentUser.userId, chatId: chatModel.chatId);
+      _messageDataProveder.deleteAllMessagesFromFirebase(
+          userId: chatModel.chatContactUserId, chatId: currentUser.userId);
+
+      // delete chats
+      await _chatDataProveder.deleteChatFromFirebase(
+          userId: currentUser.userId, chatId: chatModel.chatId);
+      await _chatDataProveder.deleteChatFromFirebase(
+          userId: chatModel.chatContactUserId, chatId: currentUser.userId);
+    } catch (e) {
+      _setTextError('Some error happened');
     }
-
-    // delete messages
-    _messageDataProveder.deleteAllMessagesFromFirebase(
-        userId: currentUser.userId, chatId: chatModel.chatId);
-    _messageDataProveder.deleteAllMessagesFromFirebase(
-        userId: chatModel.chatContactId, chatId: currentUser.userId);
-
-    // delete chats
-    await _chatDataProveder.deleteChatFromFirebase(
-        userId: currentUser.userId, chatId: chatModel.chatId);
-    await _chatDataProveder.deleteChatFromFirebase(
-        userId: chatModel.chatContactId, chatId: currentUser.userId);
   }
 
   Future<void> deleteChatForCurrentUser({required ChatModel chatModel}) async {
-    final currentUser = state.currentUser;
+    try {
+      final currentUser = state.currentUser;
 
-    // stop if current user absents
-    if (currentUser == null) {
-      _setTextError('You aren\'t signed in');
-      return;
+      // stop if current user absents
+      if (currentUser == null) {
+        _setTextError('You aren\'t signed in');
+        return;
+      }
+
+      // delete message
+      _messageDataProveder.deleteAllMessagesFromFirebase(
+          userId: currentUser.userId, chatId: chatModel.chatId);
+
+      // delete chat
+      await _chatDataProveder.deleteChatFromFirebase(
+          userId: currentUser.userId, chatId: chatModel.chatId);
+    } catch (e) {
+      _setTextError('Some error happened');
     }
-
-    // delete message
-    _messageDataProveder.deleteAllMessagesFromFirebase(
-        userId: currentUser.userId, chatId: chatModel.chatId);
-
-    // delete chat
-    await _chatDataProveder.deleteChatFromFirebase(
-        userId: currentUser.userId, chatId: chatModel.chatId);
   }
 
   // load chats list

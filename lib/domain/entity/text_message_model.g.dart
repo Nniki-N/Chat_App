@@ -1,12 +1,13 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'message_model.dart';
+part of 'text_message_model.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-MessageModel _$MessageModelFromJson(Map<String, dynamic> json) => MessageModel(
+TextMessageModel _$TextMessageModelFromJson(Map<String, dynamic> json) =>
+    TextMessageModel(
       messageId: json['message_id'] as String,
       message: json['message'] as String,
       senderId: json['sender_id'] as String,
@@ -14,7 +15,7 @@ MessageModel _$MessageModelFromJson(Map<String, dynamic> json) => MessageModel(
       isEdited: json['is_edited'] as bool?,
     );
 
-Map<String, dynamic> _$MessageModelToJson(MessageModel instance) =>
+Map<String, dynamic> _$TextMessageModelToJson(TextMessageModel instance) =>
     <String, dynamic>{
       'message_id': instance.messageId,
       'message': instance.message,

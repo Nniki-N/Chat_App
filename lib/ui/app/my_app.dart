@@ -1,3 +1,4 @@
+import 'package:chat_app/domain/cubits/account_cubit.dart';
 import 'package:chat_app/domain/cubits/auth_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
@@ -24,13 +25,13 @@ class MyApp extends StatelessWidget {
           providers: [
             BlocProvider(create: (context) => ThemeCubit()),
             BlocProvider(create: (context) => AuthCubit()),
+            BlocProvider(create: (context) => AccountCubit()),
           ],
           child: BlocListener<AuthCubit, AuthState>(
             listener: (context, state) {
               if (state == AuthState.signedOut) {
                 _navigatorKey.currentState?.pushNamedAndRemoveUntil(
-                    MainNavigationRouteNames.authScreen,
-                    (r) => false);
+                    MainNavigationRouteNames.authScreen, (r) => false);
               } else if (state == AuthState.signedIn) {
                 _navigatorKey.currentState?.pushNamedAndRemoveUntil(
                     MainNavigationRouteNames.mainScreen, (r) => false);

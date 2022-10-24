@@ -17,11 +17,20 @@ class AuthDataProvider {
       userId: _firebaseAuth.currentUser!.uid,
       userEmail: _firebaseAuth.currentUser?.email ?? '',
       userName: _firebaseAuth.currentUser?.displayName ?? '',
+      userLogin: '',
     );
   }
 
   // get current user UID
-  String getCurrentUserUID() {
-    return getCurrentUser()?.userId ?? '';
+  String? getCurrentUserUID() {
+    return getCurrentUser()?.userId;
+  }
+
+  Future<void> deleteUser({required String email, required String password}) async {
+    final user = _firebaseAuth.currentUser;
+    final AuthCredential credential = EmailAuthProvider.credential(email: email, password: password);
+
+    await user?.reauthenticateWithCredential(credential);
+    await user?.delete();
   }
 }

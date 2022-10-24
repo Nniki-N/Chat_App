@@ -15,7 +15,34 @@ class ChatDataProvider {
         .doc(userId)
         .collection(FirestoreConstants.pathChatCollection)
         .doc(chatModel.chatId)
-        .set(chatModel.toJson());
+        .update(chatModel.toJson());
+  }
+
+  // update all chats avatars
+  Future<void> updateAllChatsAvatarsInFirebase({
+    required String userId,
+    required String? userImageUrl,
+  }) async {
+    final snapshots = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .collection(FirestoreConstants.pathChatCollection)
+        .get();
+
+    for (var doc in snapshots.docs) {
+      final json = doc.data();
+      final chatModel = ChatModel.fromJson(json);
+      final contactUserId = chatModel.chatContactUserId;
+
+      final contactUserChatModel =
+          await getChatFromFirebase(userId: contactUserId, chatId: userId);
+
+      if (contactUserChatModel == null) return;
+
+      updateChatInFirebase(
+          userId: contactUserId,
+          chatModel: contactUserChatModel.copyWith(chatImageUrl: userImageUrl));
+    }
   }
 
   // add chat to firebase
@@ -79,6 +106,23 @@ class ChatDataProvider {
             .snapshots();
 
     return snapshots;
+  }
+
+  // delete all chats from firebase
+  Future<void> deleteAllChatsFromFirebase({required String userId}) async {
+    final batch = _firebaseFirestore.batch();
+
+    final snapshots = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .collection(FirestoreConstants.pathChatCollection)
+        .get();
+
+    for (var doc in snapshots.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
   }
 
   // delete chat from firebase

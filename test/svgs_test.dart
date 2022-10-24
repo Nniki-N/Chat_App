@@ -6,6 +6,7 @@ import 'package:chat_app/resources/resources.dart';
 void main() {
   test('svgs assets test', () {
     expect(File(Svgs.arrowLeft).existsSync(), true);
+    expect(File(Svgs.arrowRight).existsSync(), true);
     expect(File(Svgs.camera).existsSync(), true);
     expect(File(Svgs.cross).existsSync(), true);
     expect(File(Svgs.defaultUserImage).existsSync(), true);

@@ -9,13 +9,15 @@ class CustomTextFormField extends StatelessWidget {
     required this.hintText,
     required this.validatorText,
     required this.controller,
-    required this.obscureText
+    required this.obscureText,
+    this.prefixText = ''
   }) : super(key: key);
 
   final TextEditingController controller;
   final String hintText;
   final String validatorText;
   final bool obscureText;
+  final String prefixText;
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +37,14 @@ class CustomTextFormField extends StatelessWidget {
       enableSuggestions: false,
       keyboardType: TextInputType.emailAddress,
       style: TextStyle(
-        color: themeColors.titleTextColor,
+        color: themeColors.mainColor,
       ),
       cursorColor: themeColors.firstPrimaryColor,
       obscureText: obscureText,
       decoration: appConstants.getTextFieldDecoration(
         themeColors: themeColors,
         hintText: hintText,
+        prefixText: prefixText,
       ),
     );
   }

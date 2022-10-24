@@ -8,7 +8,8 @@ class ChatModel {
   final String chatId;
   final String chatName;
   final String? chatImageUrl;
-  final String chatContactId;
+  final String chatContactUserId;
+  final bool isChatContactUserOline;
   final String lastMessage;
   final int unreadMessagesCount;
   final DateTime lastMessageTime;
@@ -18,7 +19,8 @@ class ChatModel {
     required this.chatId,
     required this.chatName,
     this.chatImageUrl,
-    required this.chatContactId,
+    required this.chatContactUserId,
+    required this.isChatContactUserOline,
     required this.lastMessage,
     required this.unreadMessagesCount,
     required this.lastMessageTime,
@@ -29,7 +31,8 @@ class ChatModel {
     String? chatId,
     String? chatName,
     String? chatImageUrl,
-    String? chatContactId,
+    String? chatContactUserId,
+    bool? isChatContactUserOline,
     String? lastMessage,
     int? unreadMessagesCount,
     DateTime? lastMessageTime,
@@ -39,7 +42,9 @@ class ChatModel {
       chatId: chatId ?? this.chatId,
       chatName: chatName ?? this.chatName,
       chatImageUrl: chatImageUrl ?? this.chatImageUrl,
-      chatContactId: chatContactId ?? this.chatContactId,
+      chatContactUserId: chatContactUserId ?? this.chatContactUserId,
+      isChatContactUserOline:
+          isChatContactUserOline ?? this.isChatContactUserOline,
       lastMessage: lastMessage ?? this.lastMessage,
       unreadMessagesCount: unreadMessagesCount ?? this.unreadMessagesCount,
       lastMessageTime: lastMessageTime ?? this.lastMessageTime,

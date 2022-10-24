@@ -1,3 +1,4 @@
+import 'package:chat_app/domain/cubits/account_cubit.dart';
 import 'package:chat_app/domain/cubits/chats_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
@@ -15,8 +16,39 @@ class MainScreen extends StatefulWidget {
   State<MainScreen> createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 1;
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
+  int _currentIndex = 0;
+  late AccountCubit accountCubit;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    accountCubit = context.watch<AccountCubit>();
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // online
+      accountCubit.changeUserOnlineStatus(isOnline: true);
+    } else {
+      // offline
+      accountCubit.changeUserOnlineStatus(isOnline: false);
+    }
+
+    super.didChangeAppLifecycleState(state);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,36 +56,34 @@ class _MainScreenState extends State<MainScreen> {
     final themeColors = themeColorsCubit.themeColors;
 
     return Scaffold(
-            backgroundColor: themeColors.backgroundColor,
-            body: IndexedStack(
-              index: _currentIndex,
-              children: [
-                const Center(child: Text('Contacts')),
-                BlocProvider(
-                  create: (context) => ChatsCubit(),
-                  child: const ChatsPage(),
-                ),
-                const Center(child: Text('Camera')),
-                const SettingsPage(),
-              ],
-            ),
-            bottomNavigationBar: Container(
-              decoration: BoxDecoration(
-                color: themeColors.backgroundColor,
-                border: Border(top: BorderSide(color: themeColors.borderColor)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _bottomNavigationBarItem(svgPath: Svgs.person, index: 0),
-                  _bottomNavigationBarItem(svgPath: Svgs.people, index: 1),
-                  _bottomNavigationBarItem(svgPath: Svgs.camera, index: 2),
-                  _bottomNavigationBarItem(svgPath: Svgs.settings, index: 3),
-                ],
-              ),
-            ),
-          );
+      backgroundColor: themeColors.backgroundColor,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          BlocProvider(
+            create: (context) => ChatsCubit(),
+            child: const ChatsPage(),
+          ),
+          const Center(child: Text('Camera')),
+          const SettingsPage(),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: themeColors.backgroundColor,
+          border: Border(top: BorderSide(color: themeColors.bottomMenuBorderColor)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _bottomNavigationBarItem(svgPath: Svgs.people, index: 0),
+            _bottomNavigationBarItem(svgPath: Svgs.camera, index: 1),
+            _bottomNavigationBarItem(svgPath: Svgs.settings, index: 2),
+          ],
+        ),
+      ),
+    );
   }
 
   GestureDetector _bottomNavigationBarItem(

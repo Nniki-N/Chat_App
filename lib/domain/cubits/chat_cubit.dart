@@ -11,11 +11,11 @@ import 'package:intl/intl.dart';
 import 'package:chat_app/domain/data_poviders/chat_data_provider.dart';
 import 'package:chat_app/domain/data_poviders/message_data_provider.dart';
 import 'package:chat_app/domain/entity/chat_model.dart';
-import 'package:chat_app/domain/entity/message_model.dart';
+import 'package:chat_app/domain/entity/text_message_model.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
 import 'package:chat_app/ui/screens/chat_screen/chat_date_separator.dart';
-import 'package:chat_app/ui/screens/chat_screen/message_item.dart';
-import 'package:chat_app/ui/screens/chat_screen/my_message_item.dart';
+import 'package:chat_app/ui/screens/chat_screen/text_message_item.dart';
+import 'package:chat_app/ui/screens/chat_screen/my_text_message_item.dart';
 
 class ChatState {
   final UserModel? currentUser;
@@ -43,15 +43,23 @@ class ChatCubit extends Cubit<ChatState> {
   final _chatDataProveder = ChatDataProvider();
   final _messageDataProveder = MessageDataProvider();
 
+  // stream for messages
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _messagesStreamSubscription;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _messagesStream;
   Stream<QuerySnapshot<Map<String, dynamic>>>? get messagesStream =>
       _messagesStream;
 
+  // stream for contact user
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _contactUserStreamSubscription;
+  Stream<DocumentSnapshot<Map<String, dynamic>>>? _contactUserStream;
+  Stream<DocumentSnapshot<Map<String, dynamic>>>? get contactUserStream =>
+      _contactUserStream;
+
   final _messageIds = <String>{};
-  final _messagesList = <MessageModel>[];
-  Iterable<MessageModel> get messagesList sync* {
+  final _messagesList = <TextMessageModel>[];
+  Iterable<TextMessageModel> get messagesList sync* {
     for (var message in _messagesList) {
       yield message;
     }
@@ -60,6 +68,7 @@ class ChatCubit extends Cubit<ChatState> {
   final messageFieldController = TextEditingController();
   bool _isMessageEditing = false;
   String _editingMessageId = '';
+  bool get isMessageEditing => _isMessageEditing;
 
   ChatCubit({required ChatModel chatModel})
       : super(ChatState(
@@ -87,6 +96,27 @@ class ChatCubit extends Cubit<ChatState> {
     await _chatDataProveder.updateChatInFirebase(
         userId: currentUser.userId, chatModel: state.currentChat);
 
+    // listen for contac user status
+    _contactUserStream = _userDataProvider.getUserStreamFromFiebase(
+        userId: state.currentChat.chatContactUserId);
+    _contactUserStreamSubscription = _contactUserStream?.listen((snapshot) {
+      // ckeck if contact user exists
+      final data = snapshot.data();
+      if (data == null) return;
+
+      final contactUser = UserModel.fromJson(data);
+
+      // update state
+      emit(state.copyWith(
+        currentChat: state.currentChat
+            .copyWith(isChatContactUserOline: contactUser.isOnline),
+      ));
+
+      // update chat in firebase
+      _chatDataProveder.updateChatInFirebase(
+          userId: currentUser.userId, chatModel: state.currentChat);
+    });
+
     // load messages
     _messagesStream = _messageDataProveder.getMessagesStreamFromFirebase(
       userId: currentUser.userId,
@@ -101,7 +131,8 @@ class ChatCubit extends Cubit<ChatState> {
             // if message was added
             if (_messageIds.contains(snapshot.docs[i].id)) continue;
 
-            final messageModel = MessageModel.fromJson(snapshot.docs[i].data());
+            final messageModel =
+                TextMessageModel.fromJson(snapshot.docs[i].data());
             _messageIds.add(snapshot.docs[i].id);
             _messagesList.insert(0, messageModel);
           }
@@ -115,8 +146,8 @@ class ChatCubit extends Cubit<ChatState> {
           // check if message was edded
           if (_messageIds.contains(messageId)) return;
 
-          final messageModel =
-              MessageModel.fromJson(messageJson).copyWith(messageId: messageId);
+          final messageModel = TextMessageModel.fromJson(messageJson)
+              .copyWith(messageId: messageId);
 
           _messageIds.add(messageId);
           _messagesList.insert(0, messageModel);
@@ -128,7 +159,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   // send message
-  Future<void> sendMessage({required String text}) async {
+  Future<void> sendTextMessage({required String text}) async {
     final currentUser = state.currentUser;
 
     // stop if current user absents
@@ -136,7 +167,8 @@ class ChatCubit extends Cubit<ChatState> {
 
     // edit message if message is in editing
     if (_isMessageEditing) {
-      final messageModel = await _messageDataProveder.getMessageFromFirebase(
+      final messageModel =
+          await _messageDataProveder.getTextMessageFromFirebase(
         userId: currentUser.userId,
         chatId: state.currentChat.chatId,
         messageId: _editingMessageId,
@@ -150,12 +182,12 @@ class ChatCubit extends Cubit<ChatState> {
         return;
       }
 
-      await editMessage(messageModel: messageModel, newText: text);
+      await editTextMessage(textMessageModel: messageModel, newText: text);
 
       return;
     }
 
-    final messageModel = MessageModel(
+    final textMessageModel = TextMessageModel(
       messageId: '',
       message: text,
       senderId: currentUser.userId,
@@ -164,15 +196,15 @@ class ChatCubit extends Cubit<ChatState> {
     );
 
     // send new messages
-    await _messageDataProveder.addMessageToFirebase(
+    await _messageDataProveder.addTextMessageToFirebase(
       userId: currentUser.userId,
       chatId: state.currentChat.chatId,
-      messageModel: messageModel,
+      textMessageModel: textMessageModel,
     );
-    await _messageDataProveder.addMessageToFirebase(
-      userId: state.currentChat.chatContactId,
+    await _messageDataProveder.addTextMessageToFirebase(
+      userId: state.currentChat.chatContactUserId,
       chatId: currentUser.userId,
-      messageModel: messageModel,
+      textMessageModel: textMessageModel,
     );
 
     // current user chat
@@ -183,7 +215,7 @@ class ChatCubit extends Cubit<ChatState> {
 
     // contact user chat
     final contactUserChat = await _chatDataProveder.getChatFromFirebase(
-      userId: state.currentChat.chatContactId,
+      userId: state.currentChat.chatContactUserId,
       chatId: currentUser.userId,
     );
 
@@ -201,20 +233,22 @@ class ChatCubit extends Cubit<ChatState> {
     // update conntact user chat
     if (contactUserChat != null) {
       _chatDataProveder.updateChatInFirebase(
-        userId: state.currentChat.chatContactId,
+        userId: state.currentChat.chatContactUserId,
         chatModel: contactUserChat.copyWith(
           lastMessage: text,
           lastMessageTime: DateTime.now(),
           unreadMessagesCount: contactUserChat.unreadMessagesCount + 1,
         ),
       );
-    } else { // if contact user chat was deleted
+    } else {
+      // create new chat for contact user if contact user chat was deleted
       _chatDataProveder.addChatToFirebase(
-        userId: state.currentChat.chatContactId,
+        userId: state.currentChat.chatContactUserId,
         chatModel: ChatModel(
           chatId: currentUser.userId,
           chatName: currentUser.userName,
-          chatContactId: currentUser.userId,
+          chatContactUserId: currentUser.userId,
+          isChatContactUserOline: true,
           chatCreatedTime: currentUserChat?.chatCreatedTime ?? DateTime.now(),
           lastMessage: text,
           lastMessageTime: DateTime.now(),
@@ -225,8 +259,8 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   // edit message
-  Future<void> editMessage({
-    required MessageModel messageModel,
+  Future<void> editTextMessage({
+    required TextMessageModel textMessageModel,
     required String newText,
   }) async {
     final currentUser = await _userDataProvider.getUserFromFireBase(
@@ -235,36 +269,35 @@ class ChatCubit extends Cubit<ChatState> {
     // stop if current user absents
     if (currentUser == null) {
       // clear message edititng status
-      _isMessageEditing = false;
-      _editingMessageId = '';
+      changeEditingStatus(isEditing: false);
       return;
     }
 
     // if nothing was changed
-    if (messageModel.message == newText || newText.isEmpty) {
+    if (textMessageModel.message == newText) {
       // clear message edititng status
-      _isMessageEditing = false;
-      _editingMessageId = '';
+      changeEditingStatus(isEditing: false);
       return;
     }
 
     // update message in the list
-    final index = _messagesList
-        .indexWhere((element) => element.messageId == messageModel.messageId);
+    final index = _messagesList.indexWhere(
+        (element) => element.messageId == textMessageModel.messageId);
     if (index != -1) {
       _messagesList[index] =
           _messagesList[index].copyWith(isEdited: true, message: newText);
     }
 
     // set new text and edited status
-    await _messageDataProveder.updateMessageInFirebase(
+    await _messageDataProveder.updateTextMessageInFirebase(
       userId: currentUser.userId,
       chatId: state.currentChat.chatId,
-      messageModel: messageModel.copyWith(message: newText, isEdited: true),
+      textMessageModel:
+          textMessageModel.copyWith(message: newText, isEdited: true),
     );
 
     // update chats data if it is first message
-    if (_messagesList.first.messageId == messageModel.messageId) {
+    if (_messagesList.first.messageId == textMessageModel.messageId) {
       // current user chat
       final currentUserChat = await _chatDataProveder.getChatFromFirebase(
         userId: currentUser.userId,
@@ -273,7 +306,7 @@ class ChatCubit extends Cubit<ChatState> {
 
       // contact user chat
       final contactUserChat = await _chatDataProveder.getChatFromFirebase(
-        userId: state.currentChat.chatContactId,
+        userId: state.currentChat.chatContactUserId,
         chatId: currentUser.userId,
       );
 
@@ -290,7 +323,7 @@ class ChatCubit extends Cubit<ChatState> {
       // update conntact user chat
       if (contactUserChat != null) {
         _chatDataProveder.updateChatInFirebase(
-          userId: state.currentChat.chatContactId,
+          userId: state.currentChat.chatContactUserId,
           chatModel: contactUserChat.copyWith(
             lastMessage: newText,
           ),
@@ -300,14 +333,14 @@ class ChatCubit extends Cubit<ChatState> {
 
     // clear message edititng status
     messageFieldController.clear();
-    _isMessageEditing = false;
-    _editingMessageId = '';
+    changeEditingStatus(isEditing: false);
   }
 
   // set stauts of message editing
-  void setEditingStatus({required String messageId}) {
+  void changeEditingStatus({required bool isEditing, String messageId = ''}) {
     _editingMessageId = messageId;
-    _isMessageEditing = true;
+    _isMessageEditing = isEditing;
+    emit(state.copyWith());
   }
 
   // delete message
@@ -336,7 +369,7 @@ class ChatCubit extends Cubit<ChatState> {
         );
 
         final contactUserChat = await _chatDataProveder.getChatFromFirebase(
-          userId: state.currentChat.chatContactId,
+          userId: state.currentChat.chatContactUserId,
           chatId: currentUser.userId,
         );
 
@@ -345,7 +378,7 @@ class ChatCubit extends Cubit<ChatState> {
 
         // update contact user chat
         _chatDataProveder.updateChatInFirebase(
-          userId: state.currentChat.chatContactId,
+          userId: state.currentChat.chatContactUserId,
           chatModel: contactUserChat.copyWith(
             lastMessage: '',
             lastMessageTime: DateTime.now(),
@@ -362,7 +395,7 @@ class ChatCubit extends Cubit<ChatState> {
         );
 
         final contactUserChat = await _chatDataProveder.getChatFromFirebase(
-          userId: state.currentChat.chatContactId,
+          userId: state.currentChat.chatContactUserId,
           chatId: currentUser.userId,
         );
 
@@ -371,7 +404,7 @@ class ChatCubit extends Cubit<ChatState> {
 
         // update contact user chat
         _chatDataProveder.updateChatInFirebase(
-          userId: state.currentChat.chatContactId,
+          userId: state.currentChat.chatContactUserId,
           chatModel: contactUserChat.copyWith(
             lastMessage: '',
             lastMessageTime: DateTime.now(),
@@ -406,7 +439,7 @@ class ChatCubit extends Cubit<ChatState> {
     // stop if current user absents
     if (currentUser == null) return null;
 
-    MessageModel messageModel = _messagesList[index];
+    TextMessageModel messageModel = _messagesList[index];
 
     // return message with date of creating chat
     if (index == _messagesList.length - 1) {
@@ -416,8 +449,8 @@ class ChatCubit extends Cubit<ChatState> {
           children: [
             ChatDateSeparator(
                 date: getMessageDate(date: messageModel.messageTime)),
-            MyMessageItem(
-              messageModel: messageModel,
+            MyTextMessageItem(
+              textMessageModel: messageModel,
             ),
           ],
         );
@@ -427,7 +460,7 @@ class ChatCubit extends Cubit<ChatState> {
           children: [
             ChatDateSeparator(
                 date: getMessageDate(date: messageModel.messageTime)),
-            MessageItem(
+            TextMessageItem(
               messageText: messageModel.message,
               messageDate: getMessageTime(time: messageModel.messageTime),
               isEdited: messageModel.isEdited ?? false,
@@ -439,11 +472,11 @@ class ChatCubit extends Cubit<ChatState> {
 
     // return message
     if (messageModel.senderId == currentUser.userId) {
-      return MyMessageItem(
-        messageModel: messageModel,
+      return MyTextMessageItem(
+        textMessageModel: messageModel,
       );
     } else {
-      return MessageItem(
+      return TextMessageItem(
         messageText: messageModel.message,
         messageDate: getMessageTime(time: messageModel.messageTime),
         isEdited: messageModel.isEdited ?? false,
@@ -453,7 +486,7 @@ class ChatCubit extends Cubit<ChatState> {
 
   // get separator with date
   Widget? getMessageDateView({required int index}) {
-    MessageModel messageModel = _messagesList[index];
+    TextMessageModel messageModel = _messagesList[index];
 
     if (index < _messagesList.length - 1) {
       if (messageModel.messageTime.year != DateTime.now().year) {
@@ -485,6 +518,7 @@ class ChatCubit extends Cubit<ChatState> {
   @override
   Future<void> close() async {
     await _messagesStreamSubscription?.cancel();
+    await _contactUserStreamSubscription?.cancel();
     return super.close();
   }
 }

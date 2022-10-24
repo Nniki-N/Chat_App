@@ -1,4 +1,4 @@
-import 'package:chat_app/domain/entity/message_model.dart';
+import 'package:chat_app/domain/entity/text_message_model.dart';
 import 'package:chat_app/ui/utils/firestore_constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -6,10 +6,10 @@ class MessageDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
   // add new message in firebase
-  Future<void> addMessageToFirebase({
+  Future<void> addTextMessageToFirebase({
     required String userId,
     required String chatId,
-    required MessageModel messageModel,
+    required TextMessageModel textMessageModel,
   }) async {
     final snapshot = await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -17,12 +17,30 @@ class MessageDataProvider {
         .collection(FirestoreConstants.pathChatCollection)
         .doc(chatId)
         .collection(FirestoreConstants.pathMessageCollection)
-        .add(messageModel.toJson());
+        .add(textMessageModel.toJson());
 
-    await snapshot.update(messageModel.copyWith(messageId: snapshot.id).toJson());
+    await snapshot
+        .update(textMessageModel.copyWith(messageId: snapshot.id).toJson());
   }
 
-  Future<MessageModel?> getMessageFromFirebase({
+  // update message data
+  Future<void> updateTextMessageInFirebase({
+    required String userId,
+    required String chatId,
+    required TextMessageModel textMessageModel,
+  }) async {
+    _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .collection(FirestoreConstants.pathChatCollection)
+        .doc(chatId)
+        .collection(FirestoreConstants.pathMessageCollection)
+        .doc(textMessageModel.messageId)
+        .update(textMessageModel.toJson());
+  }
+
+  // get message from firebase
+  Future<TextMessageModel?> getTextMessageFromFirebase({
     required String userId,
     required String chatId,
     required String messageId,
@@ -37,25 +55,9 @@ class MessageDataProvider {
         .get();
 
     final json = snapshot.data();
-    if (json != null) return MessageModel.fromJson(json);
+    if (json != null) return TextMessageModel.fromJson(json);
 
     return null;
-  }
-
-  // update message data
-  Future<void> updateMessageInFirebase({
-    required String userId,
-    required String chatId,
-    required MessageModel messageModel,
-  }) async {
-    _firebaseFirestore
-        .collection(FirestoreConstants.pathUserCollection)
-        .doc(userId)
-        .collection(FirestoreConstants.pathChatCollection)
-        .doc(chatId)
-        .collection(FirestoreConstants.pathMessageCollection)
-        .doc(messageModel.messageId)
-        .update(messageModel.toJson());
   }
 
   // get stream that notifies about any message changes
@@ -104,7 +106,6 @@ class MessageDataProvider {
     required String chatId,
     required String messageId,
   }) async {
-
     await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
         .doc(userId)
