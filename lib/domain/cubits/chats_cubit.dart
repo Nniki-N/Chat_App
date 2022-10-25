@@ -58,15 +58,23 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   Future<void> _initialize() async {
-    final currentUser = await _userDataProvider.getUserFromFireBase(
+    _loading = true;
+    emit(state.copyWith(currentUser: null));
+    UserModel? currentUser;
+
+    while (true) {
+      currentUser = await _userDataProvider.getUserFromFireBase(
         userId: _authDataProvider.getCurrentUserUID());
 
+      if (currentUser != null) break;
+    }
+    
     // stop initialization if current user absents
     if (currentUser == null) {
-      _setTextError('You aren\'t signed in');
       return;
     }
 
+    _loading = false;
     // load current user state
     emit(state.copyWith(currentUser: currentUser));
 
@@ -162,7 +170,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       _setTextError('');
       return true;
     } catch (e) {
-      _setTextError('&e');
+      _setTextError('$e');
       return false;
     } finally {
       // hide loading

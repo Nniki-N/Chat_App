@@ -1,3 +1,4 @@
+import 'package:chat_app/domain/cubits/account_cubit.dart';
 import 'package:chat_app/domain/cubits/auth_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/ui/widgets/custom_text_button.dart';
@@ -31,6 +32,8 @@ class _RegistrationFormState extends State<RegistrationForm> {
 
     final authCubit = context.read<AuthCubit>();
     final errorTextStream = authCubit.errorTextStream;
+
+    final accountCubit = context.read<AccountCubit>();
 
     return StreamBuilder(
       stream: errorTextStream,
@@ -106,11 +109,19 @@ class _RegistrationFormState extends State<RegistrationForm> {
                   final userLogin = '@${userLoginController.text}';
                   final password = passwordController.text;
 
-                  authCubit.registerWithEmailAndPassword(
+                  authCubit
+                      .registerWithEmailAndPassword(
                     userName: userName,
                     email: email,
                     password: password,
                     userLogin: userLogin,
+                  )
+                      .then(
+                    (successful) {
+                      if (successful) {
+                        accountCubit.setNewCurrentUser(isSignedIn: true);
+                      }
+                    },
                   );
                 },
               ),

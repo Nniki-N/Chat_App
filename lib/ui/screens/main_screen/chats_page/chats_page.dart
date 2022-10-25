@@ -13,7 +13,6 @@ class ChatsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final chatsCubit = context.watch<ChatsCubit>();
     final chatsStream = chatsCubit.chatsStream;
-    final loading = chatsCubit.loading;
 
     return StreamBuilder(
       stream: chatsStream,
@@ -24,17 +23,25 @@ class ChatsPage extends StatelessWidget {
           children: [
             const ChatsTitleAndSearchField(),
             Expanded(
-              child: loading ? const LoadingPage() : ListView.separated(
-                padding: EdgeInsets.only(bottom: 15.h),
-                itemBuilder: (context, index) {
-                  final chatModel = chatsList.elementAt(index);
+              child: Builder(
+                builder: (context) {
+                  final loading = chatsCubit.loading;
+                  return loading
+                      ? const LoadingPage()
+                      : ListView.separated(
+                          padding: EdgeInsets.only(bottom: 15.h),
+                          itemBuilder: (context, index) {
+                            final chatModel = chatsList.elementAt(index);
 
-                  return ChatItem(
-                    chatModel: chatModel,
-                  );
+                            return ChatItem(
+                              chatModel: chatModel,
+                            );
+                          },
+                          separatorBuilder: (context, index) =>
+                              SizedBox(height: 25.h),
+                          itemCount: chatsList.length,
+                        );
                 },
-                separatorBuilder: (context, index) => SizedBox(height: 25.h),
-                itemCount: chatsList.length,
               ),
             )
           ],

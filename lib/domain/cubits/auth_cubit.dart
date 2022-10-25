@@ -71,7 +71,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // sign in
-  Future<void> signInWithEmailAndPassword({
+  Future<bool> signInWithEmailAndPassword({
     required String emailOrLogin,
     required String password,
   }) async {
@@ -101,6 +101,7 @@ class AuthCubit extends Cubit<AuthState> {
 
           _setTextError('');
           emit(AuthState.signedIn);
+          return true;
         } else {
           throw('No user found for that email.');
         }
@@ -135,6 +136,7 @@ class AuthCubit extends Cubit<AuthState> {
 
           _setTextError('');
           emit(AuthState.signedIn);
+          return true;
         } else {
           throw('Some error happened');
         }
@@ -159,10 +161,11 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       emit(AuthState.signedOut);
+      return false;
     } catch (e) {
       _setTextError('$e');
-
       emit(AuthState.signedOut);
+      return false;
     }finally {
       // hide loading
       _loading = false;
@@ -170,7 +173,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // sign out
-  Future<void> signOut() async {
+  Future<bool> signOut() async {
     try {
       // show loading
       _loading = true;
@@ -193,6 +196,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       _setTextError('');
       emit(AuthState.signedOut);
+      return true;
     } on FirebaseAuthException catch (e) {
       // show error message
       switch (e.code) {
@@ -204,9 +208,11 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       emit(AuthState.signedIn);
+      return false;
     } catch (e) {
       _setTextError('$e');
       emit(AuthState.signedIn);
+      return false;
     } finally {
       // hide loading
       _loading = false;
@@ -214,7 +220,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // register
-  Future<void> registerWithEmailAndPassword({
+  Future<bool> registerWithEmailAndPassword({
     required String userName,
     required String email,
     required String userLogin,
@@ -253,6 +259,9 @@ class AuthCubit extends Cubit<AuthState> {
         _setTextError('');
         changeShowSignIn(showSignIn: true);
         emit(AuthState.signedIn);
+        return true;
+      } else {
+        throw('This user doesn\'t exist');
       }
     } on FirebaseAuthException catch (e) {
       // show error message
@@ -271,9 +280,11 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       emit(AuthState.signedOut);
+      return false;
     } catch (e) {
       _setTextError('$e');
       emit(AuthState.signedOut);
+      return false;
     } finally {
       // hide loading
       _loading = false;

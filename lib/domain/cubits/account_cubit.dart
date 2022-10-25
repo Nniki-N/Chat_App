@@ -38,6 +38,9 @@ class AccountCubit extends Cubit<AccountState> {
   String _errorText = '';
   String get errorText => _errorText;
 
+  bool _loading = false;
+  bool get loading => _loading;
+
   // check error text changes
   final _errorTextStreamController = StreamController<String>();
   StreamSubscription<String>? _errorTextStreamSubscription;
@@ -45,7 +48,6 @@ class AccountCubit extends Cubit<AccountState> {
   Stream<String>? get errorTextStream => _errorTextStream;
 
   // stream subscriptions
-  StreamSubscription<String?>? _authStreamSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _chatsStreamSubscription;
 
@@ -58,22 +60,22 @@ class AccountCubit extends Cubit<AccountState> {
         currentUser: await _userDataProvider.getUserFromFireBase(
             userId: _authDataProvider.getCurrentUserUID())));
 
-    // check when auth status changes and act according to this
-    _authStreamSubscription = _authDataProvider.onAuthStateChanged.listen(
-      (String? userId) => userId == null
-          ? emit(state.copyWith(currentUser: null))
-          : _userDataProvider
-              .getUserFromFireBase(
-                  userId: _authDataProvider.getCurrentUserUID())
-              .then(
-                  (userModel) => emit(state.copyWith(currentUser: userModel))),
-    );
-
     // check error text changes
     _errorTextStream = _errorTextStreamController.stream.asBroadcastStream();
     _errorTextStreamSubscription = _errorTextStream?.listen((value) {
       _errorText = value;
     });
+  }
+
+  // change state current user
+  Future<void> setNewCurrentUser({required bool isSignedIn}) async {
+    if (isSignedIn) {
+      emit(state.copyWith(
+          currentUser: await _userDataProvider.getUserFromFireBase(
+              userId: _authDataProvider.getCurrentUserUID())));
+    } else {
+      emit(state.copyWith(currentUser: null));
+    }
   }
 
   // delete account and all user data with chats
@@ -82,23 +84,26 @@ class AccountCubit extends Cubit<AccountState> {
     required String userPassword,
   }) async {
     try {
+      _loading = true;
+      emit(state.copyWith());
+
       final currentUser = state.currentUser;
       final userToDelete = await _userDataProvider.getUserByEmailFromFireBase(
           userEmail: userEmail);
 
       // stop if current user absents
       if (currentUser == null) {
-        throw('You aren\'t signed in');
+        throw ('You aren\'t signed in');
       }
 
       // if user to delete doesn't exist
       if (userToDelete == null) {
-        throw('No user found for that email.');
+        throw ('No user found for that email.');
       }
 
       // if current user try delete another user
       if (currentUser.userEmail != userToDelete.userEmail) {
-        throw('This isn\'t your email');
+        throw ('This isn\'t your email');
       }
 
       // delete account
@@ -106,7 +111,8 @@ class AccountCubit extends Cubit<AccountState> {
           email: userEmail, password: userPassword);
 
       // clear user data
-      _userDataProvider.deleteUserFromFirebase(userId: currentUser.userId);
+      await _userDataProvider.deleteUserFromFirebase(
+          userId: currentUser.userId);
 
       // delte all user chats and chat with current user for everyone
       _chatsStreamSubscription = _chatDataProveder
@@ -128,6 +134,8 @@ class AccountCubit extends Cubit<AccountState> {
         }
       });
 
+      await setNewCurrentUser(isSignedIn: false);
+
       _setTextError('');
     } on FirebaseAuthException catch (e) {
       // show error message
@@ -137,6 +145,9 @@ class AccountCubit extends Cubit<AccountState> {
       }
     } catch (e) {
       _setTextError('$e');
+    } finally {
+      _loading = false;
+      emit(state.copyWith());
     }
   }
 
@@ -194,7 +205,7 @@ class AccountCubit extends Cubit<AccountState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        throw('You aren\'t signed in');
+        throw ('You aren\'t signed in');
       }
 
       // update user name
@@ -233,7 +244,6 @@ class AccountCubit extends Cubit<AccountState> {
 
   @override
   Future<void> close() async {
-    await _authStreamSubscription?.cancel();
     await _chatsStreamSubscription?.cancel();
     await _errorTextStreamSubscription?.cancel();
     return super.close();

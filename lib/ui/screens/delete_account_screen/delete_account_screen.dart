@@ -4,6 +4,7 @@ import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/widgets/custom_text_form_field.dart';
 import 'package:chat_app/ui/widgets/error_message.dart';
 import 'package:chat_app/ui/widgets/gradient_button.dart';
+import 'package:chat_app/ui/widgets/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -29,7 +30,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
 
     final accountCubit = context.watch<AccountCubit>();
     final errorTextStream = accountCubit.errorTextStream;
-
+    final loading = accountCubit.loading;
 
     return Scaffold(
       backgroundColor: themeColors.backgroundColor,
@@ -69,7 +70,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                             hintText: 'Your password',
                             validatorText: 'Please enter your password',
                             controller: userPasswordController,
-                            obscureText: false,
+                            obscureText: true,
                           ),
                           SizedBox(height: 20.h),
                           GradientButton(
@@ -81,7 +82,9 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
 
                               final userEmail = userEmailController.text;
                               final userPassword = userPasswordController.text;
-                              accountCubit.deleteUserWithEmailAndPassword(userEmail: userEmail, userPassword: userPassword);
+                              accountCubit.deleteUserWithEmailAndPassword(
+                                  userEmail: userEmail,
+                                  userPassword: userPassword);
                             },
                           ),
                           ErrorMessage(
@@ -113,6 +116,13 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 padding: const EdgeInsets.all(0),
               ),
             ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: loading ? const LoadingPage() : const SizedBox.shrink(),
           ),
         ],
       ),

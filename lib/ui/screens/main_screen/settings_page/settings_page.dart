@@ -282,7 +282,15 @@ class _AccountBlock extends StatelessWidget {
                 GradientButton(
                   text: 'Sign Out',
                   backgroundGradient: themeColors.primaryGradient,
-                  onPressed: () => authCubit.signOut(),
+                  onPressed: () {
+                    authCubit.signOut().then(
+                      (successful) {
+                        if (successful) {
+                          accountCubit.setNewCurrentUser(isSignedIn: true);
+                        }
+                      },
+                    );
+                  },
                 ),
                 SizedBox(height: 15.h),
                 BorderGradientButton(
