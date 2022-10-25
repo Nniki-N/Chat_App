@@ -190,13 +190,13 @@ class _AppSettingsItem extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: themeColors.settingsItemTextColor,
+                color: themeColors.settingsItemContentColor,
                 fontSize: 16.sp,
               ),
             ),
             SvgPicture.asset(
               Svgs.arrowRight,
-              color: themeColors.settingsItemTextColor,
+              color: themeColors.settingsItemContentColor,
               width: 15.w,
               height: 15.h,
             )
@@ -234,7 +234,7 @@ class _AppSettingsSwitchItem extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: themeColors.settingsItemTextColor,
+              color: themeColors.settingsItemContentColor,
               fontSize: 16.sp,
             ),
           ),
@@ -258,34 +258,50 @@ class _AccountBlock extends StatelessWidget {
     final themeColors = themeColorsCubit.themeColors;
 
     final authCubit = context.read<AuthCubit>();
-    final errorTextStream = authCubit.errorTextStream;
+    final accountCubit = context.read<AccountCubit>();
+    final authErrorTextStream = authCubit.errorTextStream;
+    final accountErrorTextStream = accountCubit.errorTextStream;
 
-    return StreamBuilder<Object>(
-        stream: errorTextStream,
-        builder: (context, snapshot) {
-          final errorText = authCubit.errorText;
+    return StreamBuilder(
+      stream: authErrorTextStream,
+      builder: (context, snapshot) {
+        return StreamBuilder(
+          stream: accountErrorTextStream,
+          builder: (context, snapshot) {
+            final String errorText;
+            if (authCubit.errorText.isNotEmpty) {
+              errorText = authCubit.errorText;
+            } else if (accountCubit.errorText.isEmpty) {
+              errorText = accountCubit.errorText;
+            } else {
+              errorText = '';
+            }
 
-          return Column(
-            children: [
-              GradientButton(
-                text: 'Sign Out',
-                backgroundGradient: themeColors.primaryGradient,
-                onPressed: () => authCubit.signOut(),
-              ),
-              SizedBox(height: 15.h),
-              BorderGradientButton(
-                text: 'Delete account',
-                borderGradient: themeColors.primaryGradient,
-                backgroundColor: themeColors.backgroundColor,
-                textColor: themeColors.firstPrimaryColor,
-                onPressed: () {
-                  Navigator.of(context)
-                      .pushNamed(MainNavigationRouteNames.deleteAccountScreen);
-                },
-              ),
-              ErrorMessage(errorText: errorText, color: themeColors.errorColor),
-            ],
-          );
-        });
+            return Column(
+              children: [
+                GradientButton(
+                  text: 'Sign Out',
+                  backgroundGradient: themeColors.primaryGradient,
+                  onPressed: () => authCubit.signOut(),
+                ),
+                SizedBox(height: 15.h),
+                BorderGradientButton(
+                  text: 'Delete account',
+                  borderGradient: themeColors.primaryGradient,
+                  backgroundColor: themeColors.backgroundColor,
+                  textColor: themeColors.firstPrimaryColor,
+                  onPressed: () {
+                    Navigator.of(context).pushNamed(
+                        MainNavigationRouteNames.deleteAccountScreen);
+                  },
+                ),
+                ErrorMessage(
+                    errorText: errorText, color: themeColors.errorColor),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }

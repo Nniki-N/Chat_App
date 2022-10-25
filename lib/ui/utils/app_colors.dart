@@ -35,7 +35,7 @@ abstract class AppThemeColors {
   Color get settingsFieldHintTextColor;
   Color get settingsUserLoginTextColor;
   Color get settingsItemBackgroundColor;
-  Color get settingsItemTextColor;
+  Color get settingsItemContentColor;
 
   // borders colors
   Color get textFieldBorderColor;
@@ -85,7 +85,7 @@ class DarkThemeColors extends AppThemeColors {
   @override
   Color get settingsItemBackgroundColor => const Color(0xff212121);
   @override
-  Color get settingsItemTextColor => const Color(0xffffffff);
+  Color get settingsItemContentColor => const Color(0xffffffff);
 
   // borders colors
   @override
@@ -140,7 +140,7 @@ class LightThemeColors extends AppThemeColors {
   @override
   Color get settingsItemBackgroundColor => const Color(0xFFF1F1F1);
   @override
-  Color get settingsItemTextColor => const Color(0xff000000);
+  Color get settingsItemContentColor => const Color(0xff000000);
 
   // borders colors
   @override

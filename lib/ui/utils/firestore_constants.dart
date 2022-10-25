@@ -8,6 +8,7 @@ class FirestoreConstants {
   static const userId = 'user_id';
   static const userEmail = 'user_email';
   static const userName = 'user_name';
+  static const userLogin = 'user_login';
   static const userImageUrl = 'user_image_url';
   static const isOnline = 'is_online';
   static const lastSeen = 'last_seen';

@@ -102,14 +102,12 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        _setTextError('You aren\'t signed in');
-        return false;
+        throw('You aren\'t signed in');
       }
 
       // stop if is's current user
       if (userLogin == currentUser.userLogin) {
-        _setTextError('This\'s your Login');
-        return false;
+        throw('This\'s your Login');
       }
 
       // user we want to contact
@@ -118,8 +116,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       // stop if user doesn't exist
       if (contactUser == null) {
-        _setTextError('User with this Login doesn\'t exist');
-        return false;
+        throw('User with this Login doesn\'t exist');
       }
 
       // check if chat exists
@@ -127,8 +124,7 @@ class ChatsCubit extends Cubit<ChatsState> {
           userId: currentUser.userId, chatId: contactUser.userId);
 
       if (chatExist) {
-        _setTextError('This chat already exists');
-        return false;
+        throw('This chat already exists');
       }
 
       // create chat model for contact user
@@ -166,7 +162,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       _setTextError('');
       return true;
     } catch (e) {
-      _setTextError('Some error happened');
+      _setTextError('&e');
       return false;
     } finally {
       // hide loading
@@ -200,8 +196,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        _setTextError('You aren\'t signed in');
-        return;
+        throw('You aren\'t signed in');
       }
 
       // delete messages
@@ -216,7 +211,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       await _chatDataProveder.deleteChatFromFirebase(
           userId: chatModel.chatContactUserId, chatId: currentUser.userId);
     } catch (e) {
-      _setTextError('Some error happened');
+      _setTextError('$e');
     }
   }
 
@@ -226,8 +221,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        _setTextError('You aren\'t signed in');
-        return;
+        throw('You aren\'t signed in');
       }
 
       // delete message
@@ -238,7 +232,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       await _chatDataProveder.deleteChatFromFirebase(
           userId: currentUser.userId, chatId: chatModel.chatId);
     } catch (e) {
-      _setTextError('Some error happened');
+      _setTextError('$e');
     }
   }
 

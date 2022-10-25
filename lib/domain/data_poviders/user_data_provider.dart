@@ -13,6 +13,55 @@ class UserDataProvider {
         .update(user.toJson());
   }
 
+  // update user login in firebase
+  Future<void> updateUserLoginInFirebase({
+    required String userId,
+    required String userLogin,
+  }) async {
+    final result = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .where(FirestoreConstants.userLogin, isEqualTo: userLogin)
+        .get();
+
+    // check if login is uniq
+    for (var queryDocumentSnapshot in result.docs) {
+      final json = queryDocumentSnapshot.data();
+      if (json[FirestoreConstants.userId] == userId) {
+        continue;
+      } else {
+        throw Exception('This login is already used');
+      }
+    }
+
+    _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .update({FirestoreConstants.userLogin: userLogin});
+  }
+
+  Future<bool> checkIfUserLoginIsUniq({required String userLogin}) async {
+    final result = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .where(FirestoreConstants.userLogin, isEqualTo: userLogin)
+        .get();
+
+    // check if login is uniq
+    if (result.docs.isNotEmpty) return false;
+
+    return true;
+  }
+
+  // update user name in firebase
+  Future<void> updateUserNameInFirebase({
+    required String userId,
+    required String userName,
+  }) async {
+    _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .update({FirestoreConstants.userName: userName});
+  }
+
   Future<void> addUserToFirebase({required UserModel user}) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)

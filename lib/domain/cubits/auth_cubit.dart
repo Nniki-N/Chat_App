@@ -36,6 +36,9 @@ class AuthCubit extends Cubit<AuthState> {
   bool get loading => _loading;
   String get errorText => _errorText;
 
+  bool _showSingIn = true;
+  bool get showSignIn => _showSingIn;
+
   UserModel? _currentUser;
 
   AuthCubit() : super(AuthState.initial) {
@@ -47,10 +50,18 @@ class AuthCubit extends Cubit<AuthState> {
         userId: _authDataProvider.getCurrentUserUID());
 
     // check when auth status changes and notifies
-    _authStreamSubscription = _authDataProvider.onAuthStateChanged.listen(
-        (String? userId) => userId == null
-            ? emit(AuthState.signedOut)
-            : emit(AuthState.signedIn));
+    _authStreamSubscription =
+        _authDataProvider.onAuthStateChanged.listen((String? userId) {
+      if (userId == null) {
+        _currentUser = null;
+        emit(AuthState.signedOut);
+      } else {
+        _userDataProvider
+            .getUserFromFireBase(userId: _authDataProvider.getCurrentUserUID())
+            .then((userModel) => _currentUser = userModel);
+        emit(AuthState.signedIn);
+      }
+    });
 
     // check error text changes
     _errorTextStream = _errorTextStreamController.stream.asBroadcastStream();
@@ -91,8 +102,7 @@ class AuthCubit extends Cubit<AuthState> {
           _setTextError('');
           emit(AuthState.signedIn);
         } else {
-          _setTextError('No user found for that email.');
-          emit(AuthState.signedOut);
+          throw('No user found for that email.');
         }
       } else {
         // add @ if it isn't written
@@ -103,9 +113,7 @@ class AuthCubit extends Cubit<AuthState> {
 
         // stop if user absents
         if (userModel == null) {
-          _setTextError('No user found for that login.');
-          emit(AuthState.signedOut);
-          return;
+          throw('No user found for that login.');
         }
 
         // sign in with email and password
@@ -128,8 +136,7 @@ class AuthCubit extends Cubit<AuthState> {
           _setTextError('');
           emit(AuthState.signedIn);
         } else {
-          _setTextError('Some error happened');
-          emit(AuthState.signedOut);
+          throw('Some error happened');
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -152,7 +159,11 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       emit(AuthState.signedOut);
-    } finally {
+    } catch (e) {
+      _setTextError('$e');
+
+      emit(AuthState.signedOut);
+    }finally {
       // hide loading
       _loading = false;
     }
@@ -165,12 +176,20 @@ class AuthCubit extends Cubit<AuthState> {
       _loading = true;
       emit(AuthState.inProcess);
 
-      await _firebaseAuth.signOut();
+      _currentUser = await _userDataProvider.getUserFromFireBase(
+          userId: _authDataProvider.getCurrentUserUID());
+
+      // stop if current user absents
+      if (_currentUser == null) {
+        throw ('You aren\'t signed in');
+      }
 
       // upload data of inactive status
       _userDataProvider.updateUserInFirebase(
           user: _currentUser!
               .copyWith(isOnline: false, lastSeen: DateTime.now()));
+
+      await _firebaseAuth.signOut();
 
       _setTextError('');
       emit(AuthState.signedOut);
@@ -184,6 +203,9 @@ class AuthCubit extends Cubit<AuthState> {
           _setTextError('Some error happened');
       }
 
+      emit(AuthState.signedIn);
+    } catch (e) {
+      _setTextError('$e');
       emit(AuthState.signedIn);
     } finally {
       // hide loading
@@ -202,6 +224,13 @@ class AuthCubit extends Cubit<AuthState> {
       // show loading
       _loading = true;
       emit(AuthState.inProcess);
+
+      // check if user login is uniq
+      final isUserLoginUniq =
+          await _userDataProvider.checkIfUserLoginIsUniq(userLogin: userLogin);
+      if (!isUserLoginUniq) {
+        throw ('This user login is already used');
+      }
 
       // create new accaunt with email and password
       final result = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -222,6 +251,7 @@ class AuthCubit extends Cubit<AuthState> {
         _currentUser = userModel;
 
         _setTextError('');
+        changeShowSignIn(showSignIn: true);
         emit(AuthState.signedIn);
       }
     } on FirebaseAuthException catch (e) {
@@ -241,138 +271,14 @@ class AuthCubit extends Cubit<AuthState> {
       }
 
       emit(AuthState.signedOut);
+    } catch (e) {
+      _setTextError('$e');
+      emit(AuthState.signedOut);
     } finally {
       // hide loading
-      _loading = true;
+      _loading = false;
     }
   }
-
-  // // delete account and all user data with chats
-  // Future<void> deleteUserWithEmailAndPassword(
-  //     {required String userEmail, required String userPassword}) async {
-  //   try {
-  //     // show loading
-  //     _loading = true;
-  //     emit(AuthState.signedIn);
-//
-  //     final userToDelete = await _userDataProvider.getUserByEmailFromFireBase(
-  //         userEmail: userEmail);
-//
-  //     // if user doesn't exist
-  //     if (_currentUser == null) {
-  //       _setTextError('You aren\'t signed in.');
-  //       _loading = false;
-  //       emit(AuthState.signedOut);
-  //       return;
-  //     }
-//
-  //     // if user to delete doesn't exist
-  //     if (userToDelete == null) {
-  //       _setTextError('No user found for that email.');
-  //       _loading = false;
-  //       emit(AuthState.signedIn);
-  //       return;
-  //     }
-//
-  //     // if current user try delete another user
-  //     if (_currentUser!.userEmail != userToDelete.userEmail) {
-  //       _setTextError('This isn\'t your email');
-  //       _loading = false;
-  //       emit(AuthState.signedIn);
-  //       return;
-  //     }
-//
-  //     // delete account
-  //     await _authDataProvider.deleteUser(
-  //         email: userEmail, password: userPassword);
-//
-  //     // clear user data
-  //     await _userDataProvider.deleteUserFromFirebase(
-  //         userId: _currentUser!.userId);
-//
-  //     // delte all user chats and chat with current user for everyone
-  //     _chatsStreamSubscription = _chatDataProveder
-  //         .getChatsStreamFromFirestore(userId: _currentUser!.userId)
-  //         .listen((snapshot) async {
-  //       for (var chat in snapshot.docs) {
-  //         final chatModel = ChatModel.fromJson(chat.data());
-//
-  //         _chatDataProveder.deleteChatFromFirebase(
-  //             userId: _currentUser!.userId, chatId: chatModel.chatId);
-  //         _chatDataProveder.deleteChatFromFirebase(
-  //             userId: chatModel.chatContactUserId,
-  //             chatId: _currentUser!.userId);
-//
-  //         // delete messages
-  //         _messageDataProveder.deleteAllMessagesFromFirebase(
-  //             userId: _currentUser!.userId, chatId: chatModel.chatId);
-  //         _messageDataProveder.deleteAllMessagesFromFirebase(
-  //             userId: chatModel.chatContactUserId,
-  //             chatId: _currentUser!.userId);
-  //       }
-  //     });
-//
-  //     _loading = false;
-  //     emit(AuthState.signedOut);
-  //   } on FirebaseAuthException catch (e) {
-  //     // show error message
-  //     switch (e.code) {
-  //       default:
-  //         _setTextError('Some error happened');
-  //     }
-//
-  //     _loading = false;
-  //     emit(AuthState.signedIn);
-  //   } catch (e) {
-  //     _setTextError('Some error happened');
-  //     _loading = false;
-  //     emit(AuthState.signedIn);
-  //   }
-  // }
-//
-  // // change user online status
-  // Future<void> changeUserOnlineStatus({required bool isOnline}) async {
-  //   // stop if current user absents
-  //   if (_currentUser == null) return;
-//
-  //   await _userDataProvider.updateUserInFirebase(
-  //       user: _currentUser!.copyWith(isOnline: isOnline));
-  // }
-//
-  // // set user image
-  // Future<void> setUserImage() async {
-  //   if (_currentUser == null) {
-  //     _setTextError('You aren\'t signed in');
-  //     return;
-  //   }
-//
-  //   final imageUrl = await _imageProvider.setAvatarImageInFirebaseFromGallery(
-  //       userId: _authDataProvider.getCurrentUserUID());
-  //   await _userDataProvider.updateUserInFirebase(
-  //       user: _currentUser!.copyWith(userImageUrl: imageUrl));
-  //   _currentUser = _currentUser!.copyWith(userImageUrl: imageUrl);
-  //   await _chatDataProveder.updateAllChatsAvatarsInFirebase(
-  //       userId: _currentUser!.userId, userImageUrl: imageUrl);
-//
-  //   _setTextError('');
-  //   emit(AuthState.signedIn);
-  // }
-//
-  // // update Profile
-  // Future<void> updateProfile({required String userName, required String userLogin}) async {
-  //   if (currentUser == null) return;
-//
-  //   await _userDataProvider.updateUserInFirebase(
-  //       user: currentUser!.copyWith(
-  //     userName: userName,
-  //     userLogin: userLogin,
-  //   ));
-//
-  //   _currentUser = currentUser!.copyWith(
-  //     userName: userName,
-  //     userLogin: userLogin,
-  //   );
-  // }
 
   // conver firebase user date into UserModel
   Future<UserModel?> _converFirebaseUserIntoUserModel({
@@ -396,6 +302,9 @@ class AuthCubit extends Cubit<AuthState> {
         userName: userName,
         userLogin: userLogin);
   }
+
+  // change which auth page display
+  void changeShowSignIn({required showSignIn}) => _showSingIn = showSignIn;
 
   // clean error text
   void errorTextClean() {

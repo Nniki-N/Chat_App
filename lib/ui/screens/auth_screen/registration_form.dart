@@ -58,6 +58,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
                     onpressed: () {
                       authCubit.errorTextClean();
                       widget.onPressed(true);
+                      authCubit.changeShowSignIn(showSignIn: true);
                     },
                     color: themeColors.firstPrimaryColor,
                   ),

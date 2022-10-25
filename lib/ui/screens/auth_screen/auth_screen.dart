@@ -15,7 +15,7 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  bool showSignIn = true;
+  late bool showSignIn;
 
   void toogleForms(bool value) => setState(() => showSignIn = value);
 
@@ -24,23 +24,28 @@ class _AuthScreenState extends State<AuthScreen> {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
+    final authCubit = context.read<AuthCubit>();
+    showSignIn = authCubit.showSignIn;
+
     return Builder(
       builder: (context) {
         final authCubit = context.watch<AuthCubit>();
         bool loading = authCubit.loading;
 
-        return loading ? const LoadingPage() : Scaffold(
-          backgroundColor: themeColors.backgroundColor,
-          body: Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 25.w),
-              child: showSignIn
-                  ? SignInForm(onPressed: toogleForms)
-                  : RegistrationForm(onPressed: toogleForms),
-            ),
-          ),
-        );
-      }
+        return loading
+            ? const LoadingPage()
+            : Scaffold(
+                backgroundColor: themeColors.backgroundColor,
+                body: Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 25.w),
+                    child: showSignIn
+                        ? SignInForm(onPressed: toogleForms)
+                        : RegistrationForm(onPressed: toogleForms),
+                  ),
+                ),
+              );
+      },
     );
   }
 }

@@ -45,6 +45,33 @@ class ChatDataProvider {
     }
   }
 
+  // update all chats avatars
+  Future<void> updateAllChatsNamesInFirebase({
+    required String userId,
+    required String chatName,
+  }) async {
+    final snapshots = await _firebaseFirestore
+        .collection(FirestoreConstants.pathUserCollection)
+        .doc(userId)
+        .collection(FirestoreConstants.pathChatCollection)
+        .get();
+
+    for (var doc in snapshots.docs) {
+      final json = doc.data();
+      final chatModel = ChatModel.fromJson(json);
+      final contactUserId = chatModel.chatContactUserId;
+
+      final contactUserChatModel =
+          await getChatFromFirebase(userId: contactUserId, chatId: userId);
+
+      if (contactUserChatModel == null) return;
+
+      updateChatInFirebase(
+          userId: contactUserId,
+          chatModel: contactUserChatModel.copyWith(chatName: chatName));
+    }
+  }
+
   // add chat to firebase
   Future<void> addChatToFirebase({
     required String userId,

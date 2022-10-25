@@ -3,6 +3,7 @@ import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/widgets/custom_text_button.dart';
+import 'package:chat_app/ui/widgets/error_message.dart';
 import 'package:chat_app/ui/widgets/gradient_button.dart';
 import 'package:chat_app/ui/widgets/settings_divider.dart';
 import 'package:flutter/material.dart';
@@ -49,6 +50,7 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
     final themeColors = themeColorsCubit.themeColors;
 
     final accountCubit = context.watch<AccountCubit>();
+    final accountErrorTextStream = accountCubit.errorTextStream;
 
     return Scaffold(
       backgroundColor: themeColors.backgroundColor,
@@ -56,40 +58,53 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
         padding: EdgeInsets.only(left: 17.w, top: 50.h, right: 17.w),
         child: Stack(
           children: [
-            Column(
-              children: [
-                const _UserAvatar(),
-                SizedBox(height: 15.h),
-                CustomTextButton(
-                  color: themeColors.firstPrimaryColor,
-                  text: 'Set new Photo',
-                  onpressed: () {
-                    accountCubit.setUserImage();
-                  },
-                ),
-                SizedBox(height: 15.h),
-                _ProfileSettingsBlock(
-                    formKey: _formKey,
-                    userNameController: userNameController,
-                    userLoginController: userLoginController),
-                SizedBox(height: 30.h),
-                GradientButton(
-                  text: 'Update Profile',
-                  backgroundGradient: themeColors.primaryGradient,
-                  onPressed: () {
-                    final form = _formKey.currentState;
-                    if (!form!.validate()) return;
+            StreamBuilder<Object>(
+                stream: accountErrorTextStream,
+                builder: (context, snapshot) {
+                  final String errorText = accountCubit.errorText;
 
-                    final userName = userNameController.text;
-                    final userLogin = '@${userLoginController.text}';
+                  return Column(
+                    children: [
+                      const _UserAvatar(),
+                      SizedBox(height: 15.h),
+                      CustomTextButton(
+                        color: themeColors.firstPrimaryColor,
+                        text: 'Set new Photo',
+                        onpressed: () {
+                          accountCubit.setUserImage();
+                        },
+                      ),
+                      SizedBox(height: 15.h),
+                      _ProfileSettingsBlock(
+                          formKey: _formKey,
+                          userNameController: userNameController,
+                          userLoginController: userLoginController),
+                      SizedBox(height: 30.h),
+                      GradientButton(
+                        text: 'Update Profile',
+                        backgroundGradient: themeColors.primaryGradient,
+                        onPressed: () {
+                          final form = _formKey.currentState;
+                          if (!form!.validate()) return;
 
-                    accountCubit.updateProfile(
-                        userName: userName, userLogin: userLogin);
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            ),
+                          final userName = userNameController.text;
+                          final userLogin = '@${userLoginController.text}';
+
+                          accountCubit
+                              .updateProfile(
+                                  userName: userName, userLogin: userLogin)
+                              .then((successful) {
+                            if (successful) {
+                              Navigator.of(context).pop();
+                            }
+                          });
+                        },
+                      ),
+                      ErrorMessage(
+                          errorText: errorText, color: themeColors.errorColor),
+                    ],
+                  );
+                }),
             Positioned(
               top: 0,
               right: 0,
@@ -160,6 +175,8 @@ class _ProfileSettingsBlock extends StatelessWidget {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
 
+    final accountCubit = context.read<AccountCubit>();
+
     return Form(
       key: formKey,
       child: Container(
@@ -229,7 +246,7 @@ class _ProfileSettingsTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(
-          color: themeColors.settingsItemTextColor,
+          color: themeColors.settingsItemContentColor,
           fontSize: 14.sp,
         ),
         prefixIcon: Padding(

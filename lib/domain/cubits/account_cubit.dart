@@ -44,6 +44,8 @@ class AccountCubit extends Cubit<AccountState> {
   Stream<String>? _errorTextStream;
   Stream<String>? get errorTextStream => _errorTextStream;
 
+  // stream subscriptions
+  StreamSubscription<String?>? _authStreamSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _chatsStreamSubscription;
 
@@ -55,6 +57,17 @@ class AccountCubit extends Cubit<AccountState> {
     emit(state.copyWith(
         currentUser: await _userDataProvider.getUserFromFireBase(
             userId: _authDataProvider.getCurrentUserUID())));
+
+    // check when auth status changes and act according to this
+    _authStreamSubscription = _authDataProvider.onAuthStateChanged.listen(
+      (String? userId) => userId == null
+          ? emit(state.copyWith(currentUser: null))
+          : _userDataProvider
+              .getUserFromFireBase(
+                  userId: _authDataProvider.getCurrentUserUID())
+              .then(
+                  (userModel) => emit(state.copyWith(currentUser: userModel))),
+    );
 
     // check error text changes
     _errorTextStream = _errorTextStreamController.stream.asBroadcastStream();
@@ -75,20 +88,17 @@ class AccountCubit extends Cubit<AccountState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        _setTextError('You aren\'t signed in');
-        return;
+        throw('You aren\'t signed in');
       }
 
       // if user to delete doesn't exist
       if (userToDelete == null) {
-        _setTextError('No user found for that email.');
-        return;
+        throw('No user found for that email.');
       }
 
       // if current user try delete another user
       if (currentUser.userEmail != userToDelete.userEmail) {
-        _setTextError('This isn\'t your email');
-        return;
+        throw('This isn\'t your email');
       }
 
       // delete account
@@ -126,7 +136,7 @@ class AccountCubit extends Cubit<AccountState> {
           _setTextError('Some error happened');
       }
     } catch (e) {
-      _setTextError('Some error happened');
+      _setTextError('$e');
     }
   }
 
@@ -175,7 +185,7 @@ class AccountCubit extends Cubit<AccountState> {
   }
 
   // update Profile
-  Future<void> updateProfile({
+  Future<bool> updateProfile({
     required String userName,
     required String userLogin,
   }) async {
@@ -184,23 +194,30 @@ class AccountCubit extends Cubit<AccountState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        _setTextError('You aren\'t signed in');
-        return;
+        throw('You aren\'t signed in');
       }
 
-      await _userDataProvider.updateUserInFirebase(
-          user: currentUser.copyWith(
-        userName: userName,
-        userLogin: userLogin,
-      ));
+      // update user name
+      await _userDataProvider.updateUserNameInFirebase(
+          userId: currentUser.userId, userName: userName);
+      // update contact chats names
+      _chatDataProveder.updateAllChatsNamesInFirebase(
+          userId: currentUser.userId, chatName: userName);
 
+      // update user login
+      await _userDataProvider.updateUserLoginInFirebase(
+          userId: currentUser.userId, userLogin: userLogin);
+
+      _setTextError('');
       emit(state.copyWith(
           currentUser: currentUser.copyWith(
         userName: userName,
         userLogin: userLogin,
       )));
+      return true;
     } catch (e) {
-      _setTextError('Some error happened');
+      _setTextError('$e');
+      return false;
     }
   }
 
@@ -216,6 +233,7 @@ class AccountCubit extends Cubit<AccountState> {
 
   @override
   Future<void> close() async {
+    await _authStreamSubscription?.cancel();
     await _chatsStreamSubscription?.cancel();
     await _errorTextStreamSubscription?.cancel();
     return super.close();

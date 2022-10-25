@@ -55,6 +55,7 @@ class _SignInFormState extends State<SignInForm> {
                     onpressed: () {
                       authCubit.errorTextClean();
                       widget.onPressed(false);
+                      authCubit.changeShowSignIn(showSignIn: false);
                     },
                     color: themeColors.firstPrimaryColor,
                   ),
