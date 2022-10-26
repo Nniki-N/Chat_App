@@ -30,8 +30,13 @@ class MyApp extends StatelessWidget {
           child: BlocListener<AuthCubit, AuthState>(
             listener: (context, state) {
               if (state == AuthState.signedOut) {
-                _navigatorKey.currentState?.pushNamedAndRemoveUntil(
+                _navigatorKey.currentState?.popUntil((route) {
+                  if (route.settings.name != MainNavigationRouteNames.authScreen) {
+                    _navigatorKey.currentState?.pushNamedAndRemoveUntil(
                     MainNavigationRouteNames.authScreen, (r) => false);
+                  }
+                  return true;
+                });
               } else if (state == AuthState.signedIn) {
                 _navigatorKey.currentState?.pushNamedAndRemoveUntil(
                     MainNavigationRouteNames.mainScreen, (r) => false);

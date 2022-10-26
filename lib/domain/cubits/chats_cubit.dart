@@ -68,11 +68,6 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       if (currentUser != null) break;
     }
-    
-    // stop initialization if current user absents
-    if (currentUser == null) {
-      return;
-    }
 
     _loading = false;
     // load current user state

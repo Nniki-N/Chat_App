@@ -32,19 +32,28 @@ class _AuthScreenState extends State<AuthScreen> {
         final authCubit = context.watch<AuthCubit>();
         bool loading = authCubit.loading;
 
-        return loading
-            ? const LoadingPage()
-            : Scaffold(
-                backgroundColor: themeColors.backgroundColor,
-                body: Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 25.w),
-                    child: showSignIn
-                        ? SignInForm(onPressed: toogleForms)
-                        : RegistrationForm(onPressed: toogleForms),
-                  ),
+        return Scaffold(
+          backgroundColor: themeColors.backgroundColor,
+          body: Stack(
+            children: [
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 25.w),
+                  child: showSignIn
+                      ? SignInForm(onPressed: toogleForms)
+                      : RegistrationForm(onPressed: toogleForms),
                 ),
-              );
+              ),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: loading ? const LoadingPage() : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
