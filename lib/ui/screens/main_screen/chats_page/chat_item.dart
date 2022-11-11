@@ -6,6 +6,7 @@ import 'package:chat_app/ui/screens/main_screen/chats_page/chat_item_avatar.dart
 import 'package:chat_app/ui/screens/main_screen/chats_page/chat_item_last_message_and_indicator.dart';
 import 'package:chat_app/ui/screens/main_screen/chats_page/chat_item_user_name_and_date.dart';
 import 'package:chat_app/ui/widgets/pop_up_divider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -70,7 +71,7 @@ class ChatItem extends StatelessWidget {
                                 maxLines: 1,
                                 style: TextStyle(
                                   fontSize: 18.sp,
-                                  color: Colors.red,
+                                  color: themeColors.redColor,
                                 ),
                               ),
                             ),
@@ -92,7 +93,7 @@ class ChatItem extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   fontSize: 18.sp,
-                                  color: Colors.red,
+                                  color: themeColors.redColor,
                                 ),
                               ),
                             ),
@@ -103,8 +104,8 @@ class ChatItem extends StatelessWidget {
                   );
                 });
             },
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
+            backgroundColor: themeColors.redColor,
+            foregroundColor: themeColors.mainColor,
             icon: Icons.delete,
             label: 'Delete',
           ),

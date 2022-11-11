@@ -89,7 +89,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                           ),
                           ErrorMessage(
                               errorText: errorText,
-                              color: themeColors.errorColor),
+                              color: themeColors.redColor),
                         ],
                       ),
                     ),

@@ -26,7 +26,7 @@ class _SignInFormState extends State<SignInForm> {
   Widget build(BuildContext context) {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
-
+    
     final authCubit = context.read<AuthCubit>();
     final errorTextStream = authCubit.errorTextStream;
 
@@ -101,7 +101,7 @@ class _SignInFormState extends State<SignInForm> {
                   );
                 },
               ),
-              ErrorMessage(errorText: errorText, color: themeColors.errorColor),
+              ErrorMessage(errorText: errorText, color: themeColors.redColor),
             ],
           ),
         );

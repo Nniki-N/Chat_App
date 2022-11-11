@@ -125,7 +125,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
                   );
                 },
               ),
-              ErrorMessage(errorText: errorText, color: themeColors.errorColor),
+              ErrorMessage(errorText: errorText, color: themeColors.redColor),
             ],
           ),
         );

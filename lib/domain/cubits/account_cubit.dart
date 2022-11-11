@@ -1,9 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:chat_app/domain/data_poviders/chat_data_provider.dart';
 import 'package:chat_app/domain/data_poviders/message_data_provider.dart';
 import 'package:chat_app/domain/entity/chat_model.dart';
+import 'package:chat_app/domain/entity/picture.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,18 +14,25 @@ import 'package:chat_app/domain/data_poviders/auth_data_provider.dart';
 import 'package:chat_app/domain/data_poviders/image_provider.dart';
 import 'package:chat_app/domain/data_poviders/user_data_provider.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 
 class AccountState {
   UserModel? currentUser;
+  Uint8List? userAvatar;
+
   AccountState({
     required this.currentUser,
+    required this.userAvatar,
   });
 
   AccountState copyWith({
     UserModel? currentUser,
+    Uint8List? userAvatar,
   }) {
     return AccountState(
       currentUser: currentUser ?? this.currentUser,
+      userAvatar: userAvatar ?? this.userAvatar,
     );
   }
 }
@@ -51,14 +60,24 @@ class AccountCubit extends Cubit<AccountState> {
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _chatsStreamSubscription;
 
-  AccountCubit() : super(AccountState(currentUser: null)) {
+  AccountCubit() : super(AccountState(currentUser: null, userAvatar: null)) {
     _initialize();
   }
 
   Future<void> _initialize() async {
+    // load user
     emit(state.copyWith(
-        currentUser: await _userDataProvider.getUserFromFireBase(
-            userId: _authDataProvider.getCurrentUserUID())));
+      currentUser: await _userDataProvider.getUserFromFireBase(
+          userId: _authDataProvider.getCurrentUserUID()),
+    ));
+
+    // load user avatar
+    await getUserAvatar();
+
+    emit(state.copyWith(
+      currentUser: await _userDataProvider.getUserFromFireBase(
+          userId: _authDataProvider.getCurrentUserUID()),
+    ));
 
     // check error text changes
     _errorTextStream = _errorTextStreamController.stream.asBroadcastStream();
@@ -70,19 +89,21 @@ class AccountCubit extends Cubit<AccountState> {
   // change state current user
   Future<void> setNewCurrentUser({required bool isSignedIn}) async {
     if (isSignedIn) {
+      // load user
       emit(state.copyWith(
-          currentUser: await _userDataProvider.getUserFromFireBase(
-              userId: _authDataProvider.getCurrentUserUID())));
+        currentUser: await _userDataProvider.getUserFromFireBase(
+            userId: _authDataProvider.getCurrentUserUID()),
+      ));
+
+      // load user avatar
+      await getUserAvatar();
     } else {
-      emit(state.copyWith(currentUser: null));
+      emit(AccountState(currentUser: null, userAvatar: null));
     }
   }
 
   // delete account and all user data with chats
-  Future<void> deleteUserWithEmailAndPassword({
-    required String userEmail,
-    required String userPassword,
-  }) async {
+  Future<void> deleteUserWithEmailAndPassword({ required String userEmail, required String userPassword, }) async {
     try {
       _loading = true;
       emit(state.copyWith());
@@ -165,22 +186,44 @@ class AccountCubit extends Cubit<AccountState> {
         user: currentUser.copyWith(isOnline: isOnline));
   }
 
-  // set user image
-  Future<void> setUserImage() async {
+  // set user avatar
+  Future<void> setUserAvatar() async {
     try {
       final currentUser = state.currentUser;
 
       // stop if current user absents
       if (currentUser == null) {
-        _setTextError('You aren\'t signed in');
+        throw ('You aren\'t signed in');
+      }
+
+      final imagePicker = ImagePicker();
+      final image = await imagePicker.pickImage(source: ImageSource.gallery);
+
+      if (image == null) {
+        _setTextError('');
         return;
       }
 
-      final imageUrl = await _imageProvider.setAvatarImageInFirebaseFromGallery(
-          userId: currentUser.userId);
+      // load new avatar
+      emit(state.copyWith(userAvatar: await image.readAsBytes()));
 
-      if (imageUrl == null) return;
+      final imageUrl = await _imageProvider.setAvatarImageInFirebase(
+        userId: currentUser.userId,
+        imageFile: image,
+      );
 
+      if (imageUrl == null) {
+        emit(AccountState(currentUser: state.currentUser, userAvatar: null));
+        return;
+      }
+
+      final imageUint8List = await image.readAsBytes();
+      final picture =
+          Picture(title: currentUser.userId, picture: imageUint8List);
+
+      await _imageProvider.savePictureInDB(picture: picture);
+
+      // load avatar url
       emit(state.copyWith(
           currentUser: currentUser.copyWith(userImageUrl: imageUrl)));
 
@@ -191,15 +234,118 @@ class AccountCubit extends Cubit<AccountState> {
 
       _setTextError('');
     } catch (e) {
-      _setTextError('Some error happened');
+      _setTextError('$e');
+    }
+  }
+
+  // sdelete user avatar
+  Future<void> deleteUserAvatar() async {
+    try {
+      final currentUser = state.currentUser;
+
+      // stop if current user absents
+      if (currentUser == null) {
+        throw ('You aren\'t signed in');
+      }
+
+      // clear user avatar url
+      final newCurrentUser = UserModel(
+          userId: currentUser.userId,
+          userEmail: currentUser.userEmail,
+          userName: currentUser.userName,
+          userLogin: currentUser.userLogin,
+          userImageUrl: null,
+          isOnline: currentUser.isOnline,
+          lastSeen: currentUser.lastSeen);
+
+      // delete user avatar
+      await _imageProvider.deletePictureFromDB(title: newCurrentUser.userId);
+      await _imageProvider.deleteAvatarImageInFirebase(userId: currentUser.userId);
+
+      _userDataProvider.updateUserInFirebase(user: newCurrentUser);
+      _chatDataProveder.updateAllChatsAvatarsInFirebase(
+          userId: newCurrentUser.userId, userImageUrl: null);
+
+      _setTextError('');
+      emit(AccountState(currentUser: newCurrentUser, userAvatar: null));
+    } on FirebaseException catch (e) {
+      switch (e.code) {
+        case 'object-not-found':
+          _setTextError('');
+          break;
+        default:
+          _setTextError('Some error happened');
+      }
+    } catch (e) {
+      _setTextError('$e');
+    }
+  }
+
+  // get user avatar
+  Future<Uint8List?> getUserAvatar() async {
+    try {
+      final currentUser = state.currentUser;
+
+      // stop if current user absents
+      if (currentUser == null) {
+        throw ('You aren\'t signed in');
+      }
+
+      // load avatar from database
+      Picture? picture =
+          await _imageProvider.getPictureFromDB(title: currentUser.userId);
+
+      if (picture != null) {
+        _setTextError('');
+        emit(state.copyWith(userAvatar: picture.picture));
+        return picture.picture;
+      }
+
+      // load avatar from firebase
+      final url = await _imageProvider.loadImageFromFirebase(
+          userId: currentUser.userId);
+
+      if (url != null) {
+        final uri = Uri.parse(url);
+
+        // create new picure
+        picture = Picture(
+          title: currentUser.userId,
+          picture: (await http.get(uri)).bodyBytes,
+        );
+
+        // save picture in database
+        _imageProvider.savePictureInDB(picture: picture);
+
+        // return avatar in Uint8List format
+        _setTextError('');
+        emit(state.copyWith(userAvatar: picture.picture));
+        return picture.picture;
+      } else {
+        _setTextError('');
+        emit(state.copyWith(userAvatar: null));
+        return null;
+      }
+    } on FirebaseException catch (e) {
+      // show error message
+      switch (e.code) {
+        case 'object-not-found':
+          _setTextError('');
+          break;
+        default:
+          _setTextError('Some error happened');
+      }
+      emit(state.copyWith(userAvatar: null));
+      return null;
+    } catch (e) {
+      _setTextError('$e');
+      emit(state.copyWith(userAvatar: null));
+      return null;
     }
   }
 
   // update Profile
-  Future<bool> updateProfile({
-    required String userName,
-    required String userLogin,
-  }) async {
+  Future<bool> updateProfile({ required String userName, required String userLogin, }) async {
     try {
       final currentUser = state.currentUser;
 

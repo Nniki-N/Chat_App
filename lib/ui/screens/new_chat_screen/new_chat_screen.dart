@@ -89,7 +89,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
                           ),
                           ErrorMessage(
                               errorText: errorText,
-                              color: themeColors.errorColor),
+                              color: themeColors.redColor),
                         ],
                       ),
                     ),

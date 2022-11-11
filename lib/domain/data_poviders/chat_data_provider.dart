@@ -41,7 +41,7 @@ class ChatDataProvider {
 
       updateChatInFirebase(
           userId: contactUserId,
-          chatModel: contactUserChatModel.copyWith(chatImageUrl: userImageUrl));
+          chatModel: contactUserChatModel.copyWith(chatImageUrl: userImageUrl ?? ''));
     }
   }
 

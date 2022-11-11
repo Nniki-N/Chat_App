@@ -1,4 +1,5 @@
 import 'package:chat_app/resources/resources.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -21,6 +22,12 @@ class ChatItemAvatar extends StatelessWidget {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
       ),
+      // child: chatAvatar == null
+      //     ? SvgPicture.asset(Svgs.defaultUserImage)
+      //     : Image.memory(
+      //         chatAvatar!,
+      //         fit: BoxFit.cover,
+      //       ),
       child: avatarUrl == null || avatarUrl!.trim().isEmpty
           ? SvgPicture.asset(Svgs.defaultUserImage)
           : Image.network(

@@ -27,4 +27,5 @@ class FirestoreConstants {
   static const message = 'message';
   static const senderId = 'sender_id';
   static const messageTime = 'message_time';
+  static const messageImageUrl = 'message_image_url';
 }

@@ -43,7 +43,7 @@ abstract class AppThemeColors {
   Color get bottomMenuBorderColor;
   Color get chatHeaderBorderColor;
 
-  Color get errorColor;
+  Color get redColor;
 }
 
 class DarkThemeColors extends AppThemeColors {
@@ -98,7 +98,7 @@ class DarkThemeColors extends AppThemeColors {
   Color get chatHeaderBorderColor => const Color(0xff515151);
 
   @override
-  Color get errorColor => Colors.red;
+  Color get redColor => Colors.red;
 }
 
 class LightThemeColors extends AppThemeColors {
@@ -153,5 +153,5 @@ class LightThemeColors extends AppThemeColors {
   Color get chatHeaderBorderColor => const Color(0xffD9D9D9);
 
   @override
-  Color get errorColor => Colors.red;
+  Color get redColor => Colors.red;
 }

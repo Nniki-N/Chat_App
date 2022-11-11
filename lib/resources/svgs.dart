@@ -10,6 +10,7 @@ class Svgs {
   static const String defaultUserImage =
       'assets/images/svg/default-user-image.svg';
   static const String edit = 'assets/images/svg/edit.svg';
+  static const String image = 'assets/images/svg/image.svg';
   static const String logoBackground = 'assets/images/svg/logo-background.svg';
   static const String logoForeground = 'assets/images/svg/logo-foreground.svg';
   static const String logo = 'assets/images/svg/logo.svg';

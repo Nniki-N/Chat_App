@@ -11,6 +11,7 @@ void main() {
     expect(File(Svgs.cross).existsSync(), true);
     expect(File(Svgs.defaultUserImage).existsSync(), true);
     expect(File(Svgs.edit).existsSync(), true);
+    expect(File(Svgs.image).existsSync(), true);
     expect(File(Svgs.logoBackground).existsSync(), true);
     expect(File(Svgs.logoForeground).existsSync(), true);
     expect(File(Svgs.logo).existsSync(), true);

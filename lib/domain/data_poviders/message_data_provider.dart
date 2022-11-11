@@ -1,4 +1,4 @@
-import 'package:chat_app/domain/entity/text_message_model.dart';
+import 'package:chat_app/domain/entity/message_model.dart';
 import 'package:chat_app/ui/utils/firestore_constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -6,28 +6,27 @@ class MessageDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
   // add new message in firebase
-  Future<void> addTextMessageToFirebase({
+  Future<void> addMessageToFirebase({
     required String userId,
     required String chatId,
-    required TextMessageModel textMessageModel,
+    required String messageId,
+    required MessageModel messageModel,
   }) async {
-    final snapshot = await _firebaseFirestore
+    await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
         .doc(userId)
         .collection(FirestoreConstants.pathChatCollection)
         .doc(chatId)
         .collection(FirestoreConstants.pathMessageCollection)
-        .add(textMessageModel.toJson());
-
-    await snapshot
-        .update(textMessageModel.copyWith(messageId: snapshot.id).toJson());
+        .doc(messageId)
+        .set(messageModel.toJson());
   }
 
   // update message data
-  Future<void> updateTextMessageInFirebase({
+  Future<void> updateMessageInFirebase({
     required String userId,
     required String chatId,
-    required TextMessageModel textMessageModel,
+    required MessageModel textMessageModel,
   }) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -40,7 +39,7 @@ class MessageDataProvider {
   }
 
   // get message from firebase
-  Future<TextMessageModel?> getTextMessageFromFirebase({
+  Future<MessageModel?> getMessageFromFirebase({
     required String userId,
     required String chatId,
     required String messageId,
@@ -55,7 +54,7 @@ class MessageDataProvider {
         .get();
 
     final json = snapshot.data();
-    if (json != null) return TextMessageModel.fromJson(json);
+    if (json != null) return MessageModel.fromJson(json);
 
     return null;
   }

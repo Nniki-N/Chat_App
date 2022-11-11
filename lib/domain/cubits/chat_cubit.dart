@@ -1,21 +1,25 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:chat_app/domain/data_poviders/auth_data_provider.dart';
+import 'package:chat_app/domain/data_poviders/image_provider.dart';
 import 'package:chat_app/domain/data_poviders/user_data_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'package:chat_app/domain/data_poviders/chat_data_provider.dart';
 import 'package:chat_app/domain/data_poviders/message_data_provider.dart';
 import 'package:chat_app/domain/entity/chat_model.dart';
-import 'package:chat_app/domain/entity/text_message_model.dart';
+import 'package:chat_app/domain/entity/message_model.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
 import 'package:chat_app/ui/screens/chat_screen/chat_date_separator.dart';
-import 'package:chat_app/ui/screens/chat_screen/text_message_item.dart';
-import 'package:chat_app/ui/screens/chat_screen/my_text_message_item.dart';
+import 'package:chat_app/ui/screens/chat_screen/message_item.dart';
+import 'package:chat_app/ui/screens/chat_screen/my_message_item.dart';
+import 'package:uuid/uuid.dart';
 
 class ChatState {
   final UserModel? currentUser;
@@ -42,6 +46,7 @@ class ChatCubit extends Cubit<ChatState> {
   final _userDataProvider = UserDataProvider();
   final _chatDataProveder = ChatDataProvider();
   final _messageDataProveder = MessageDataProvider();
+  final _imageProvider = ImagesProvider();
 
   // stream for messages
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
@@ -58,8 +63,8 @@ class ChatCubit extends Cubit<ChatState> {
       _contactUserStream;
 
   final _messageIds = <String>{};
-  final _messagesList = <TextMessageModel>[];
-  Iterable<TextMessageModel> get messagesList sync* {
+  final _messagesList = <MessageModel>[];
+  Iterable<MessageModel> get messagesList sync* {
     for (var message in _messagesList) {
       yield message;
     }
@@ -69,6 +74,16 @@ class ChatCubit extends Cubit<ChatState> {
   bool _isMessageEditing = false;
   String _editingMessageId = '';
   bool get isMessageEditing => _isMessageEditing;
+
+  String? _messageImageUrl;
+  XFile? _imageToSend;
+  Uint8List? _imageToSendInUint8List;
+  bool _isImageSending = false;
+
+  bool get isImageSending => _isImageSending;
+  XFile? get imageToSend => _imageToSend;
+  Uint8List? get imageToSendInUint8List => _imageToSendInUint8List;
+  String? get messageImageUrl => _messageImageUrl;
 
   ChatCubit({required ChatModel chatModel})
       : super(ChatState(
@@ -131,8 +146,7 @@ class ChatCubit extends Cubit<ChatState> {
             // if message was added
             if (_messageIds.contains(snapshot.docs[i].id)) continue;
 
-            final messageModel =
-                TextMessageModel.fromJson(snapshot.docs[i].data());
+            final messageModel = MessageModel.fromJson(snapshot.docs[i].data());
             _messageIds.add(snapshot.docs[i].id);
             _messagesList.insert(0, messageModel);
           }
@@ -146,8 +160,8 @@ class ChatCubit extends Cubit<ChatState> {
           // check if message was edded
           if (_messageIds.contains(messageId)) return;
 
-          final messageModel = TextMessageModel.fromJson(messageJson)
-              .copyWith(messageId: messageId);
+          final messageModel =
+              MessageModel.fromJson(messageJson).copyWith(messageId: messageId);
 
           _messageIds.add(messageId);
           _messagesList.insert(0, messageModel);
@@ -158,8 +172,25 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith());
   }
 
+  Future<void> chooseImageToSendFromGallery() async {
+    final imagePicker = ImagePicker();
+
+    _imageToSend = await imagePicker.pickImage(source: ImageSource.gallery);
+    _imageToSendInUint8List = await _imageToSend?.readAsBytes();
+    _isImageSending = true;
+    emit(state.copyWith());
+  }
+
+  void cancelImageSending() {
+    _messageImageUrl = null;
+    _imageToSend = null;
+    _imageToSendInUint8List = null;
+    _isImageSending = false;
+    emit(state.copyWith());
+  }
+
   // send message
-  Future<void> sendTextMessage({required String text}) async {
+  Future<void> sendMessage({required String text}) async {
     final currentUser = state.currentUser;
 
     // stop if current user absents
@@ -167,8 +198,7 @@ class ChatCubit extends Cubit<ChatState> {
 
     // edit message if message is in editing
     if (_isMessageEditing) {
-      final messageModel =
-          await _messageDataProveder.getTextMessageFromFirebase(
+      final messageModel = await _messageDataProveder.getMessageFromFirebase(
         userId: currentUser.userId,
         chatId: state.currentChat.chatId,
         messageId: _editingMessageId,
@@ -182,30 +212,46 @@ class ChatCubit extends Cubit<ChatState> {
         return;
       }
 
-      await editTextMessage(textMessageModel: messageModel, newText: text);
+      await editMessage(messageModel: messageModel, newText: text);
 
       return;
     }
 
-    final textMessageModel = TextMessageModel(
-      messageId: '',
+    // upload image in firebase if it is sending
+    final randomMessageImageId = const Uuid().v4();
+    if (_isImageSending) {
+      _messageImageUrl = await _imageProvider.setImageInFirebase(
+        imageFile: _imageToSend,
+        imageId: randomMessageImageId,
+      );
+    }
+
+    final randomMessageId = const Uuid().v4();
+    final messageModel = MessageModel(
+      messageId: randomMessageId,
       message: text,
+      messageImageId: _isImageSending ? randomMessageImageId : null,
+      messageImageUrl: _messageImageUrl,
       senderId: currentUser.userId,
       messageTime: DateTime.now(),
       isEdited: false,
     );
 
     // send new messages
-    await _messageDataProveder.addTextMessageToFirebase(
+    await _messageDataProveder.addMessageToFirebase(
       userId: currentUser.userId,
       chatId: state.currentChat.chatId,
-      textMessageModel: textMessageModel,
+      messageId: randomMessageId,
+      messageModel: messageModel,
     );
-    await _messageDataProveder.addTextMessageToFirebase(
+    await _messageDataProveder.addMessageToFirebase(
       userId: state.currentChat.chatContactUserId,
       chatId: currentUser.userId,
-      textMessageModel: textMessageModel,
+      messageId: randomMessageId,
+      messageModel: messageModel,
     );
+
+    cancelImageSending();
 
     // current user chat
     final currentUserChat = await _chatDataProveder.getChatFromFirebase(
@@ -259,8 +305,8 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   // edit message
-  Future<void> editTextMessage({
-    required TextMessageModel textMessageModel,
+  Future<void> editMessage({
+    required MessageModel messageModel,
     required String newText,
   }) async {
     final currentUser = await _userDataProvider.getUserFromFireBase(
@@ -274,30 +320,29 @@ class ChatCubit extends Cubit<ChatState> {
     }
 
     // if nothing was changed
-    if (textMessageModel.message == newText) {
+    if (messageModel.message == newText) {
       // clear message edititng status
       changeEditingStatus(isEditing: false);
       return;
     }
 
     // update message in the list
-    final index = _messagesList.indexWhere(
-        (element) => element.messageId == textMessageModel.messageId);
+    final index = _messagesList
+        .indexWhere((element) => element.messageId == messageModel.messageId);
     if (index != -1) {
       _messagesList[index] =
           _messagesList[index].copyWith(isEdited: true, message: newText);
     }
 
     // set new text and edited status
-    await _messageDataProveder.updateTextMessageInFirebase(
+    await _messageDataProveder.updateMessageInFirebase(
       userId: currentUser.userId,
       chatId: state.currentChat.chatId,
-      textMessageModel:
-          textMessageModel.copyWith(message: newText, isEdited: true),
+      textMessageModel: messageModel.copyWith(message: newText, isEdited: true),
     );
 
     // update chats data if it is first message
-    if (_messagesList.first.messageId == textMessageModel.messageId) {
+    if (_messagesList.first.messageId == messageModel.messageId) {
       // current user chat
       final currentUserChat = await _chatDataProveder.getChatFromFirebase(
         userId: currentUser.userId,
@@ -344,7 +389,10 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   // delete message
-  Future<void> deleteMessage({required String messageId}) async {
+  Future<void> deleteMessage({
+    required String messageId,
+    required String? messageImageId,
+  }) async {
     if (messageId.isEmpty) return;
 
     final currentUser = await _userDataProvider.getUserFromFireBase(
@@ -411,25 +459,29 @@ class ChatCubit extends Cubit<ChatState> {
           ),
         );
       }
-
-      // delete message
-      await _messageDataProveder.deleteMessage(
-        userId: currentUser.userId,
-        chatId: state.currentChat.chatId,
-        messageId: messageId,
-      );
     } else {
       final index =
           _messagesList.indexWhere((message) => message.messageId == messageId);
       _messagesList.removeAt(index);
-
-      // delete message
-      await _messageDataProveder.deleteMessage(
-        userId: currentUser.userId,
-        chatId: state.currentChat.chatId,
-        messageId: messageId,
-      );
     }
+
+    // delete message for current user
+    await _messageDataProveder.deleteMessage(
+      userId: currentUser.userId,
+      chatId: state.currentChat.chatId,
+      messageId: messageId,
+    );
+
+    // delete message for contact user
+    await _messageDataProveder.deleteMessage(
+      userId: state.currentChat.chatId,
+      chatId: currentUser.userId,
+      messageId: messageId,
+    );
+
+    // delete message image if it exists
+    await _imageProvider.deleteImageFromFirebase(
+        imageId: messageImageId);
   }
 
   // get widget view of message
@@ -439,7 +491,7 @@ class ChatCubit extends Cubit<ChatState> {
     // stop if current user absents
     if (currentUser == null) return null;
 
-    TextMessageModel messageModel = _messagesList[index];
+    MessageModel messageModel = _messagesList[index];
 
     // return message with date of creating chat
     if (index == _messagesList.length - 1) {
@@ -449,8 +501,8 @@ class ChatCubit extends Cubit<ChatState> {
           children: [
             ChatDateSeparator(
                 date: getMessageDate(date: messageModel.messageTime)),
-            MyTextMessageItem(
-              textMessageModel: messageModel,
+            MyMessageItem(
+              messageModel: messageModel,
             ),
           ],
         );
@@ -460,10 +512,8 @@ class ChatCubit extends Cubit<ChatState> {
           children: [
             ChatDateSeparator(
                 date: getMessageDate(date: messageModel.messageTime)),
-            TextMessageItem(
-              messageText: messageModel.message,
-              messageDate: getMessageTime(time: messageModel.messageTime),
-              isEdited: messageModel.isEdited ?? false,
+            MessageItem(
+              messageModel: messageModel,
             ),
           ],
         );
@@ -472,21 +522,19 @@ class ChatCubit extends Cubit<ChatState> {
 
     // return message
     if (messageModel.senderId == currentUser.userId) {
-      return MyTextMessageItem(
-        textMessageModel: messageModel,
+      return MyMessageItem(
+        messageModel: messageModel,
       );
     } else {
-      return TextMessageItem(
-        messageText: messageModel.message,
-        messageDate: getMessageTime(time: messageModel.messageTime),
-        isEdited: messageModel.isEdited ?? false,
+      return MessageItem(
+        messageModel: messageModel,
       );
     }
   }
 
   // get separator with date
   Widget? getMessageDateView({required int index}) {
-    TextMessageModel messageModel = _messagesList[index];
+    MessageModel messageModel = _messagesList[index];
 
     if (index < _messagesList.length - 1) {
       if (messageModel.messageTime.year != DateTime.now().year) {

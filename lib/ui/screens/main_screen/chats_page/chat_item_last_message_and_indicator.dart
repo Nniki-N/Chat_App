@@ -46,7 +46,7 @@ class ChatItemLastMessageAndIndicator extends StatelessWidget {
                   child: Text(
                     unreadedMessagesCount.toString(),
                     style: TextStyle(
-                      color: Colors.white,
+                      color: themeColors.mainColor,
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w500,
                     ),

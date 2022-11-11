@@ -67,12 +67,25 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
                     children: [
                       const _UserAvatar(),
                       SizedBox(height: 15.h),
-                      CustomTextButton(
-                        color: themeColors.firstPrimaryColor,
-                        text: 'Set new Photo',
-                        onpressed: () {
-                          accountCubit.setUserImage();
-                        },
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CustomTextButton(
+                            color: themeColors.firstPrimaryColor,
+                            text: 'Set new Photo',
+                            onpressed: () {
+                              accountCubit.setUserAvatar();
+                            },
+                          ),
+                          SizedBox(width: 15.w),
+                          CustomTextButton(
+                            color: themeColors.redColor.withOpacity(0.6),
+                            text: 'Delete Photo',
+                            onpressed: () {
+                              accountCubit.deleteUserAvatar();
+                            },
+                          ),
+                        ],
                       ),
                       SizedBox(height: 15.h),
                       _ProfileSettingsBlock(
@@ -101,7 +114,7 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
                         },
                       ),
                       ErrorMessage(
-                          errorText: errorText, color: themeColors.errorColor),
+                          errorText: errorText, color: themeColors.redColor),
                     ],
                   );
                 }),
@@ -138,7 +151,7 @@ class _UserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AccountCubit, AccountState>(builder: (context, state) {
-      final userImageUrl = state.currentUser?.userImageUrl;
+      final userAvatar = state.userAvatar;
 
       return Container(
         width: 120.w,
@@ -147,10 +160,10 @@ class _UserAvatar extends StatelessWidget {
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
         ),
-        child: userImageUrl == null || userImageUrl.trim().isEmpty
+        child: userAvatar == null
             ? SvgPicture.asset(Svgs.defaultUserImage)
-            : Image.network(
-                userImageUrl,
+            : Image.memory(
+                userAvatar,
                 fit: BoxFit.cover,
               ),
       );
@@ -174,8 +187,6 @@ class _ProfileSettingsBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
-
-    final accountCubit = context.read<AccountCubit>();
 
     return Form(
       key: formKey,

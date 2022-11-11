@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'package:chat_app/domain/data_poviders/image_provider.dart';
+import 'package:chat_app/domain/entity/picture.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:chat_app/domain/data_poviders/auth_data_provider.dart';
@@ -9,6 +12,7 @@ import 'package:chat_app/domain/data_poviders/user_data_provider.dart';
 import 'package:chat_app/domain/entity/chat_configuration.dart';
 import 'package:chat_app/domain/entity/chat_model.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
+import 'package:http/http.dart' as http;
 
 class ChatsState {
   final UserModel? currentUser;
@@ -31,6 +35,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   final _userDataProvider = UserDataProvider();
   final _chatDataProveder = ChatDataProvider();
   final _messageDataProveder = MessageDataProvider();
+  final _imageProvider = ImagesProvider();
 
   // check chats changes
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
@@ -45,6 +50,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   Stream<String>? get errorTextStream => _errorTextStream;
 
   final _fullChatsList = <ChatModel>[];
+  final _chatsAvatars = <String, Uint8List?>{};
 
   // is used to display status for user
   bool _loading = false;
@@ -64,7 +70,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
     while (true) {
       currentUser = await _userDataProvider.getUserFromFireBase(
-        userId: _authDataProvider.getCurrentUserUID());
+          userId: _authDataProvider.getCurrentUserUID());
 
       if (currentUser != null) break;
     }
@@ -82,7 +88,33 @@ class ChatsCubit extends Cubit<ChatsState> {
         _fullChatsList.clear();
 
         for (var chat in snapshot.docs) {
-          _fullChatsList.add(ChatModel.fromJson(chat.data()));
+          final chatModel = ChatModel.fromJson(chat.data());
+          _fullChatsList.add(chatModel);
+
+          // _imageProvider
+          //     .getPictureFromDB(title: chatModel.chatContactUserId)
+          //     .then((value) {
+          //   final picture = value?.picture;
+
+          //   _chatsAvatars[chatModel.chatContactUserId] = picture;
+          // });
+
+          // // load chats avatars
+          // final url = chatModel.chatImageUrl;
+          // if (url != null) {
+          //   final uri = Uri.parse(url);
+
+          //   http.get(uri).then((value) {
+          //     final picture = Picture(
+          //       title: chatModel.chatContactUserId,
+          //       picture: value.bodyBytes,
+          //     );
+
+          //     // _imageProvider.savePictureInDB(picture: picture);
+
+          //     _chatsAvatars[picture.title] = picture.picture;
+          //   });
+          // }
         }
       },
     );
@@ -105,12 +137,12 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        throw('You aren\'t signed in');
+        throw ('You aren\'t signed in');
       }
 
       // stop if is's current user
       if (userLogin == currentUser.userLogin) {
-        throw('This\'s your Login');
+        throw ('This\'s your Login');
       }
 
       // user we want to contact
@@ -119,7 +151,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       // stop if user doesn't exist
       if (contactUser == null) {
-        throw('User with this Login doesn\'t exist');
+        throw ('User with this Login doesn\'t exist');
       }
 
       // check if chat exists
@@ -127,7 +159,7 @@ class ChatsCubit extends Cubit<ChatsState> {
           userId: currentUser.userId, chatId: contactUser.userId);
 
       if (chatExist) {
-        throw('This chat already exists');
+        throw ('This chat already exists');
       }
 
       // create chat model for contact user
@@ -199,7 +231,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        throw('You aren\'t signed in');
+        throw ('You aren\'t signed in');
       }
 
       // delete messages
@@ -224,7 +256,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       // stop if current user absents
       if (currentUser == null) {
-        throw('You aren\'t signed in');
+        throw ('You aren\'t signed in');
       }
 
       // delete message
@@ -238,6 +270,11 @@ class ChatsCubit extends Cubit<ChatsState> {
       _setTextError('$e');
     }
   }
+
+  // // load chat avatar
+  // Uint8List? loadChatAvatar({required String chatId}) {
+  //   return _chatsAvatars[chatId];
+  // }
 
   // load chats list
   Iterable<ChatModel> getChatsList() sync* {

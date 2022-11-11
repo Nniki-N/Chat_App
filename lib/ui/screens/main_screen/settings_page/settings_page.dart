@@ -48,7 +48,7 @@ class _UserInfoBlock extends StatelessWidget {
         final currentUser = state.currentUser;
         final userName = currentUser?.userName;
         final userLogin = currentUser?.userLogin;
-        final userImageUrl = currentUser?.userImageUrl;
+        final userAvatar = state.userAvatar;
 
         return Stack(
           children: [
@@ -64,10 +64,10 @@ class _UserInfoBlock extends StatelessWidget {
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                   ),
-                  child: userImageUrl == null || userImageUrl.trim().isEmpty
+                  child: userAvatar == null
                       ? SvgPicture.asset(Svgs.defaultUserImage)
-                      : Image.network(
-                          userImageUrl,
+                      : Image.memory(
+                          userAvatar,
                           fit: BoxFit.cover,
                         ),
                 ),
@@ -286,7 +286,7 @@ class _AccountBlock extends StatelessWidget {
                     authCubit.signOut().then(
                       (successful) {
                         if (successful) {
-                          accountCubit.setNewCurrentUser(isSignedIn: true);
+                          accountCubit.setNewCurrentUser(isSignedIn: false);
                         }
                       },
                     );
@@ -303,8 +303,7 @@ class _AccountBlock extends StatelessWidget {
                         MainNavigationRouteNames.deleteAccountScreen);
                   },
                 ),
-                ErrorMessage(
-                    errorText: errorText, color: themeColors.errorColor),
+                ErrorMessage(errorText: errorText, color: themeColors.redColor),
               ],
             );
           },
