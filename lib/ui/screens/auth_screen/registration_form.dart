@@ -8,6 +8,7 @@ import 'package:chat_app/ui/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RegistrationForm extends StatefulWidget {
   const RegistrationForm({super.key, required this.onPressed});
@@ -49,7 +50,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Registration',
+                    AppLocalizations.of(context)!.register,
                     style: TextStyle(
                       fontSize: 26.sp,
                       fontWeight: FontWeight.w700,
@@ -57,7 +58,7 @@ class _RegistrationFormState extends State<RegistrationForm> {
                     ),
                   ),
                   CustomTextButton(
-                    text: 'Sign In',
+                    text: AppLocalizations.of(context)!.signIn,
                     onpressed: () {
                       authCubit.errorTextClean();
                       widget.onPressed(true);
@@ -69,36 +70,36 @@ class _RegistrationFormState extends State<RegistrationForm> {
               ),
               SizedBox(height: 25.h),
               CustomTextFormField(
-                hintText: 'User name',
-                validatorText: 'Please enter your user name',
+                hintText: AppLocalizations.of(context)!.userName,
+                validatorText: AppLocalizations.of(context)!.pleaseEnterYourUserName,
                 controller: userNameController,
                 obscureText: false,
               ),
               SizedBox(height: 25.h),
               CustomTextFormField(
-                hintText: 'E-mail',
-                validatorText: 'Please enter your E-mail',
+                hintText: AppLocalizations.of(context)!.email,
+                validatorText: AppLocalizations.of(context)!.pleaseEnterYourEmail,
                 controller: emailController,
                 obscureText: false,
               ),
               SizedBox(height: 25.h),
               CustomTextFormField(
-                hintText: 'Login',
-                validatorText: 'Please enter your login',
+                hintText: AppLocalizations.of(context)!.login,
+                validatorText: AppLocalizations.of(context)!.pleaseEnterYourLogin,
                 controller: userLoginController,
                 obscureText: false,
                 prefixText: '@ ',
               ),
               SizedBox(height: 20.h),
               CustomTextFormField(
-                hintText: 'Password',
-                validatorText: 'Please enter your password',
+                hintText: AppLocalizations.of(context)!.password,
+                validatorText: AppLocalizations.of(context)!.pleaseEnterYourPassword,
                 controller: passwordController,
                 obscureText: true,
               ),
               SizedBox(height: 20.h),
               GradientButton(
-                text: 'Register',
+                text: AppLocalizations.of(context)!.password,
                 backgroundGradient: themeColors.primaryGradient,
                 onPressed: () {
                   final form = _formKey.currentState;

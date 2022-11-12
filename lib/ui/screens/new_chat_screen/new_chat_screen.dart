@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class NewChatScreen extends StatefulWidget {
   const NewChatScreen({super.key});
@@ -51,7 +52,7 @@ class _NewChatScreenState extends State<NewChatScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Create new chat',
+                            AppLocalizations.of(context)!.createNewChat,
                             style: TextStyle(
                               fontSize: 26.sp,
                               fontWeight: FontWeight.w700,
@@ -60,15 +61,15 @@ class _NewChatScreenState extends State<NewChatScreen> {
                           ),
                           SizedBox(height: 25.h),
                           CustomTextFormField(
-                            hintText: 'User Login',
-                            validatorText: 'Please enter user Login',
+                            hintText: AppLocalizations.of(context)!.userLogin,
+                            validatorText: AppLocalizations.of(context)!.pleaseEnterUserLogin,
                             controller: userLoginController,
                             obscureText: false,
                             prefixText: '@ ',
                           ),
                           SizedBox(height: 20.h),
                           GradientButton(
-                            text: 'Create',
+                            text: AppLocalizations.of(context)!.create,
                             backgroundGradient: themeColors.primaryGradient,
                             onPressed: () {
                               final form = _formKey.currentState;

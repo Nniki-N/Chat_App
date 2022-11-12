@@ -2,6 +2,7 @@ import 'package:chat_app/domain/cubits/chat_cubit.dart';
 import 'package:chat_app/domain/cubits/chats_cubit.dart';
 import 'package:chat_app/domain/entity/chat_configuration.dart';
 import 'package:chat_app/ui/screens/auth_screen/auth_screen.dart';
+import 'package:chat_app/ui/screens/change_language_screen/change_language_sreen.dart';
 import 'package:chat_app/ui/screens/change_profile_screen/change_profile_screen.dart';
 import 'package:chat_app/ui/screens/chat_screen/chat_screen.dart';
 import 'package:chat_app/ui/screens/delete_account_screen/delete_account_screen.dart';
@@ -20,6 +21,7 @@ class MainNavigationRouteNames {
   static const chatScreen = '/main/chat';
   static const deleteAccountScreen = '/main/deleteAccount';
   static const changeProfileScreen = '/main/changeProfile';
+  static const changeLanguageScreen = '/main/changeLanguage';
 }
 
 class MainNavigation {
@@ -31,6 +33,7 @@ class MainNavigation {
           child: const NewChatScreen(),
         ),
     MainNavigationRouteNames.deleteAccountScreen: (context) => const DeleteAccountScreen(),
+    MainNavigationRouteNames.changeLanguageScreen: (context) => const ChangeLanguageScreen(),
   };
 
   Route<Object>? onGenerateRoute(RouteSettings settings) {

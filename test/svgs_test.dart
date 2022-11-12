@@ -8,6 +8,7 @@ void main() {
     expect(File(Svgs.arrowLeft).existsSync(), true);
     expect(File(Svgs.arrowRight).existsSync(), true);
     expect(File(Svgs.camera).existsSync(), true);
+    expect(File(Svgs.checkMark).existsSync(), true);
     expect(File(Svgs.cross).existsSync(), true);
     expect(File(Svgs.defaultUserImage).existsSync(), true);
     expect(File(Svgs.edit).existsSync(), true);

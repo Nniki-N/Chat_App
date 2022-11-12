@@ -4,6 +4,7 @@ import 'package:chat_app/ui/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 
 class NonExistentScreen extends StatelessWidget {
@@ -20,7 +21,7 @@ class NonExistentScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'This screen doesn\'t exists',
+              AppLocalizations.of(context)!.thisScreenDoesntExists,
               style: TextStyle(
                 color: themeColors.mainColor,
                 fontSize: 20.sp,
@@ -31,7 +32,7 @@ class NonExistentScreen extends StatelessWidget {
                 backgroundGradient: themeColors.primaryGradient,
                 onPressed: () => Navigator.of(context)
                     .pop(MainNavigationRouteNames.authScreen),
-                text: 'Back')
+                text: AppLocalizations.of(context)!.back)
           ],
         ),
       ),

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChangeProfileConfiguration {
   final UserModel currentUserModel;
@@ -72,7 +73,7 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
                         children: [
                           CustomTextButton(
                             color: themeColors.firstPrimaryColor,
-                            text: 'Set new Photo',
+                            text: AppLocalizations.of(context)!.setNewPhoto,
                             onpressed: () {
                               accountCubit.setUserAvatar();
                             },
@@ -80,7 +81,7 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
                           SizedBox(width: 15.w),
                           CustomTextButton(
                             color: themeColors.redColor.withOpacity(0.6),
-                            text: 'Delete Photo',
+                            text: AppLocalizations.of(context)!.deletePhoto,
                             onpressed: () {
                               accountCubit.deleteUserAvatar();
                             },
@@ -94,7 +95,7 @@ class _ChangeProfileScreenState extends State<ChangeProfileScreen> {
                           userLoginController: userLoginController),
                       SizedBox(height: 30.h),
                       GradientButton(
-                        text: 'Update Profile',
+                        text: AppLocalizations.of(context)!.updateProfile,
                         backgroundGradient: themeColors.primaryGradient,
                         onPressed: () {
                           final form = _formKey.currentState;

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Header extends StatelessWidget {
   const Header({
@@ -137,7 +138,7 @@ class _HeaderTitle extends StatelessWidget {
           Row(
             children: [
               Text(
-                isOnline ? 'Active Now' : 'Not active',
+                isOnline ? AppLocalizations.of(context)!.active : AppLocalizations.of(context)!.notActive,
                 style: TextStyle(
                   color: themeColors.secondTextColor,
                   fontSize: 10.sp,

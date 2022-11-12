@@ -8,11 +8,11 @@ import 'package:chat_app/ui/widgets/border_gradient_button.dart';
 import 'package:chat_app/ui/widgets/custom_text_button.dart';
 import 'package:chat_app/ui/widgets/error_message.dart';
 import 'package:chat_app/ui/widgets/gradient_button.dart';
-import 'package:chat_app/ui/widgets/settings_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -73,7 +73,7 @@ class _UserInfoBlock extends StatelessWidget {
                 ),
                 SizedBox(height: 10.h),
                 Text(
-                  userName ?? 'user name',
+                  userName ?? AppLocalizations.of(context)!.userName,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: TextStyle(
@@ -83,7 +83,7 @@ class _UserInfoBlock extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  userLogin ?? 'user login',
+                  userLogin ?? AppLocalizations.of(context)!.userLogin,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: TextStyle(
@@ -98,7 +98,7 @@ class _UserInfoBlock extends StatelessWidget {
               top: 0,
               right: 0,
               child: CustomTextButton(
-                text: 'Edit',
+                text: AppLocalizations.of(context)!.edit,
                 color: themeColors.mainColor,
                 onpressed: () {
                   final changeProfileConfiguration = ChangeProfileConfiguration(
@@ -134,9 +134,12 @@ class _AppSettingsBlock extends StatelessWidget {
           ),
           child: Column(
             children: [
-              _AppSettingsItem(text: 'Language', onPressed: () {}),
-              SettingsDivider(color: themeColors.settingsDividerColor),
-              _AppSettingsItem(text: 'Privacy and Security', onPressed: () {}),
+              _AppSettingsItem(
+                text: AppLocalizations.of(context)!.language,
+                onPressed: () {
+                  Navigator.of(context).pushNamed(MainNavigationRouteNames.changeLanguageScreen);
+                },
+              ),
             ],
           ),
         ),
@@ -149,7 +152,7 @@ class _AppSettingsBlock extends StatelessWidget {
           child: Column(
             children: [
               _AppSettingsSwitchItem(
-                text: 'Dark theme',
+                text: AppLocalizations.of(context)!.darkTheme,
                 switchValue: !themeColorsCubit.state,
                 onPressed: (_) {
                   themeColorsCubit.toggleTheme();
@@ -180,6 +183,7 @@ class _AppSettingsItem extends StatelessWidget {
 
     return GestureDetector(
       onTap: onPressed,
+      behavior: HitTestBehavior.opaque,
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 10.h, horizontal: 17.w),
         child: Row(
@@ -280,7 +284,7 @@ class _AccountBlock extends StatelessWidget {
             return Column(
               children: [
                 GradientButton(
-                  text: 'Sign Out',
+                  text: AppLocalizations.of(context)!.signOut,
                   backgroundGradient: themeColors.primaryGradient,
                   onPressed: () {
                     authCubit.signOut().then(
@@ -294,7 +298,7 @@ class _AccountBlock extends StatelessWidget {
                 ),
                 SizedBox(height: 15.h),
                 BorderGradientButton(
-                  text: 'Delete account',
+                  text: AppLocalizations.of(context)!.deleteAccount,
                   borderGradient: themeColors.primaryGradient,
                   backgroundColor: themeColors.backgroundColor,
                   textColor: themeColors.firstPrimaryColor,

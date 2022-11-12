@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChatsTitleAndSearchField extends StatelessWidget {
   const ChatsTitleAndSearchField({Key? key}) : super(key: key);
@@ -23,7 +24,7 @@ class ChatsTitleAndSearchField extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Chats',
+                AppLocalizations.of(context)!.chats,
                 style: TextStyle(
                   color: themeColors.mainColor,
                   fontSize: 26.sp,

@@ -5,6 +5,7 @@ import 'package:chat_app/ui/widgets/pop_up_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MyMessageItem extends StatelessWidget {
   const MyMessageItem({
@@ -64,7 +65,7 @@ class MyMessageItem extends StatelessWidget {
                               width: double.infinity,
                               alignment: Alignment.center,
                               child: Text(
-                                'Edit',
+                                AppLocalizations.of(context)!.edit,
                                 style: TextStyle(
                                   fontSize: 18.sp,
                                   color: themeColors.mainColor,
@@ -91,7 +92,7 @@ class MyMessageItem extends StatelessWidget {
                               width: double.infinity,
                               alignment: Alignment.center,
                               child: Text(
-                                'Delete',
+                                AppLocalizations.of(context)!.delete,
                                 style: TextStyle(
                                   fontSize: 18.sp,
                                   color: themeColors.redColor,
@@ -150,7 +151,7 @@ class MyMessageItem extends StatelessWidget {
                         children: [
                           messageModel.isEdited ?? false
                               ? Text(
-                                  'Edited',
+                                  AppLocalizations.of(context)!.edited,
                                   style: TextStyle(
                                     fontSize: 12.sp,
                                     color: themeColors.secondPrimaryColor,

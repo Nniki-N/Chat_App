@@ -8,6 +8,7 @@ import 'package:chat_app/ui/widgets/gradient_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignInForm extends StatefulWidget {
   const SignInForm({super.key, required this.onPressed});
@@ -46,7 +47,7 @@ class _SignInFormState extends State<SignInForm> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Sign In',
+                    AppLocalizations.of(context)!.signIn,
                     style: TextStyle(
                       fontSize: 26.sp,
                       fontWeight: FontWeight.w700,
@@ -54,7 +55,7 @@ class _SignInFormState extends State<SignInForm> {
                     ),
                   ),
                   CustomTextButton(
-                    text: 'Register',
+                    text: AppLocalizations.of(context)!.register,
                     onpressed: () {
                       authCubit.errorTextClean();
                       widget.onPressed(false);
@@ -66,21 +67,21 @@ class _SignInFormState extends State<SignInForm> {
               ),
               SizedBox(height: 20.h),
               CustomTextFormField(
-                hintText: 'E-mail or Login',
-                validatorText: 'Please enter your E-mail or login',
+                hintText: AppLocalizations.of(context)!.emailOrLogin,
+                validatorText: AppLocalizations.of(context)!.pleaseEnterYourEmailOrLogin,
                 controller: emailOrLoginController,
                 obscureText: false,
               ),
               SizedBox(height: 20.h),
               CustomTextFormField(
-                hintText: 'Password',
-                validatorText: 'Please enter your password',
+                hintText: AppLocalizations.of(context)!.password,
+                validatorText: AppLocalizations.of(context)!.pleaseEnterYourPassword,
                 controller: passwordController,
                 obscureText: true,
               ),
               SizedBox(height: 20.h),
               GradientButton(
-                text: 'Sign In',
+                text: AppLocalizations.of(context)!.signIn,
                 backgroundGradient: themeColors.primaryGradient,
                 onPressed: () {
                   final form = _formKey.currentState;

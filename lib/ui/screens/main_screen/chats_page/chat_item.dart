@@ -6,11 +6,11 @@ import 'package:chat_app/ui/screens/main_screen/chats_page/chat_item_avatar.dart
 import 'package:chat_app/ui/screens/main_screen/chats_page/chat_item_last_message_and_indicator.dart';
 import 'package:chat_app/ui/screens/main_screen/chats_page/chat_item_user_name_and_date.dart';
 import 'package:chat_app/ui/widgets/pop_up_divider.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChatItem extends StatelessWidget {
   const ChatItem({
@@ -67,7 +67,7 @@ class ChatItem extends StatelessWidget {
                               width: double.infinity,
                               alignment: Alignment.center,
                               child: Text(
-                                'Delete just for me',
+                                AppLocalizations.of(context)!.deleteJustForMe,
                                 maxLines: 1,
                                 style: TextStyle(
                                   fontSize: 18.sp,
@@ -88,7 +88,7 @@ class ChatItem extends StatelessWidget {
                               width: double.infinity,
                               alignment: Alignment.center,
                               child: Text(
-                                'Delete for me and $userName',
+                                '${AppLocalizations.of(context)!.deleteJustForMeAnd} $userName',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -107,7 +107,7 @@ class ChatItem extends StatelessWidget {
             backgroundColor: themeColors.redColor,
             foregroundColor: themeColors.mainColor,
             icon: Icons.delete,
-            label: 'Delete',
+            label: AppLocalizations.of(context)!.delete,
           ),
         ],
       ),

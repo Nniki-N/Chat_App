@@ -6,9 +6,6 @@ import 'package:sqflite/sqflite.dart';
 
 class ImagesProvider {
   final _firebaseStorage = FirebaseStorage.instance;
-
-  // final String databasesPath = await getDatabasesPath();
-
   final picturesDatabase = openDatabase(
     'Pictures_db.db',
     version: 1,
@@ -111,25 +108,6 @@ class ImagesProvider {
 
     return result.isEmpty ? null : Picture.fromJson(json: result[0]);
   }
-
-  // load all pictures from database
-  // Future<List<Picture>> getAllPicturesFromDB() async {
-  //   final database = await picturesDatabase;
-//
-  //   List<Map<String, dynamic>> list =
-  //       await database.rawQuery('SELECT * FROM Pictures');
-  //   List<Picture> pictures = List.generate(
-  //     list.length,
-  //     (i) {
-  //       return Picture(
-  //         title: list[i]['title'],
-  //         picture: list[i]['picture'],
-  //       );
-  //     },
-  //   );
-//
-  //   return pictures;
-  // }
 
   // delete picure from database via title
   Future<void> deletePictureFromDB({required String title}) async {

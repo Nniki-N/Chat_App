@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DeleteAccountScreen extends StatefulWidget {
   const DeleteAccountScreen({super.key});
@@ -51,7 +52,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Delete account',
+                            AppLocalizations.of(context)!.delete,
                             style: TextStyle(
                               fontSize: 26.sp,
                               fontWeight: FontWeight.w700,
@@ -60,21 +61,21 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                           ),
                           SizedBox(height: 25.h),
                           CustomTextFormField(
-                            hintText: 'Your email',
-                            validatorText: 'Please enter your email',
+                            hintText: AppLocalizations.of(context)!.email,
+                            validatorText: AppLocalizations.of(context)!.pleaseEnterYourEmail,
                             controller: userEmailController,
                             obscureText: false,
                           ),
                           SizedBox(height: 25.h),
                           CustomTextFormField(
-                            hintText: 'Your password',
-                            validatorText: 'Please enter your password',
+                            hintText: AppLocalizations.of(context)!.password,
+                            validatorText: AppLocalizations.of(context)!.pleaseEnterYourPassword,
                             controller: userPasswordController,
                             obscureText: true,
                           ),
                           SizedBox(height: 20.h),
                           GradientButton(
-                            text: 'Delete',
+                            text: AppLocalizations.of(context)!.delete,
                             backgroundGradient: themeColors.primaryGradient,
                             onPressed: () async {
                               final form = _formKey.currentState;
