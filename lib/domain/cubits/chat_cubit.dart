@@ -85,16 +85,16 @@ class ChatCubit extends Cubit<ChatState> {
   Uint8List? get imageToSendInUint8List => _imageToSendInUint8List;
   String? get messageImageUrl => _messageImageUrl;
 
-  ChatCubit({required ChatModel chatModel})
+  ChatCubit({required ChatModel chatModel, required XFile? imageToSend})
       : super(ChatState(
           currentUser: null,
           currentChat: chatModel,
         )) {
-    _initialize();
+    _initialize(imageToSend: imageToSend);
   }
 
   // load state from firebase
-  Future<void> _initialize() async {
+  Future<void> _initialize({required XFile? imageToSend}) async {
     final currentUser = await _userDataProvider.getUserFromFireBase(
         userId: _authDataProvider.getCurrentUserUID());
 
@@ -168,6 +168,13 @@ class ChatCubit extends Cubit<ChatState> {
         }
       },
     );
+
+    // set image to send if it exist
+    if (imageToSend != null) {
+      _imageToSend = imageToSend;
+      _imageToSendInUint8List = await _imageToSend?.readAsBytes();
+      _isImageSending = true;
+    }
 
     emit(state.copyWith());
   }

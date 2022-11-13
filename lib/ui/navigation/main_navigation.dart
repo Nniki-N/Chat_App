@@ -1,3 +1,4 @@
+import 'package:chat_app/domain/cubits/camera_cubit.dart';
 import 'package:chat_app/domain/cubits/chat_cubit.dart';
 import 'package:chat_app/domain/cubits/chats_cubit.dart';
 import 'package:chat_app/domain/entity/chat_configuration.dart';
@@ -7,6 +8,7 @@ import 'package:chat_app/ui/screens/change_profile_screen/change_profile_screen.
 import 'package:chat_app/ui/screens/chat_screen/chat_screen.dart';
 import 'package:chat_app/ui/screens/delete_account_screen/delete_account_screen.dart';
 import 'package:chat_app/ui/screens/loading_screen/loading_screen.dart';
+import 'package:chat_app/ui/screens/main_screen/camera_page/camera_page.dart';
 import 'package:chat_app/ui/screens/main_screen/main_screen.dart';
 import 'package:chat_app/ui/screens/new_chat_screen/new_chat_screen.dart';
 import 'package:chat_app/ui/screens/non_existent_screen/non_existent_screen.dart';
@@ -19,6 +21,7 @@ class MainNavigationRouteNames {
   static const mainScreen = '/main';
   static const newChatScreen = '/main/newChat';
   static const chatScreen = '/main/chat';
+  static const cameraScreen = '/main/camera';
   static const deleteAccountScreen = '/main/deleteAccount';
   static const changeProfileScreen = '/main/changeProfile';
   static const changeLanguageScreen = '/main/changeLanguage';
@@ -32,8 +35,17 @@ class MainNavigation {
           create: (context) => ChatsCubit(),
           child: const NewChatScreen(),
         ),
-    MainNavigationRouteNames.deleteAccountScreen: (context) => const DeleteAccountScreen(),
-    MainNavigationRouteNames.changeLanguageScreen: (context) => const ChangeLanguageScreen(),
+    MainNavigationRouteNames.cameraScreen: (context) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => ChatsCubit()),
+            BlocProvider(create: (context) => CameraCubit()),
+          ],
+          child: const CameraPage(),
+        ),
+    MainNavigationRouteNames.deleteAccountScreen: (context) =>
+        const DeleteAccountScreen(),
+    MainNavigationRouteNames.changeLanguageScreen: (context) =>
+        const ChangeLanguageScreen(),
   };
 
   Route<Object>? onGenerateRoute(RouteSettings settings) {
@@ -45,7 +57,10 @@ class MainNavigation {
 
         return MaterialPageRoute(
           builder: (context) => BlocProvider(
-            create: (context) => ChatCubit(chatModel: configuration.chat),
+            create: (context) => ChatCubit(
+              chatModel: configuration.chat,
+              imageToSend: configuration.imageToSend,
+            ),
             child: const ChatScreen(),
           ),
         );

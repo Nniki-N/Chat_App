@@ -116,7 +116,7 @@ class LanguageItem extends StatelessWidget {
                 ? SvgPicture.asset(
                     Svgs.checkMark,
                     color: themeColors.firstPrimaryColor,
-                    height: 12.h,
+                    height: 8.h,
                   )
                 : const SizedBox.shrink(),
           ],

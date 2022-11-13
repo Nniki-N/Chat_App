@@ -23,7 +23,6 @@ class CustomTextFormField extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeColorsCubit = context.watch<ThemeCubit>();
     final themeColors = themeColorsCubit.themeColors;
-    final appConstants = AppConstants();
 
     return TextFormField(
       validator: (value) {
@@ -41,7 +40,7 @@ class CustomTextFormField extends StatelessWidget {
       ),
       cursorColor: themeColors.firstPrimaryColor,
       obscureText: obscureText,
-      decoration: appConstants.getTextFieldDecoration(
+      decoration: getTextFieldDecoration(
         themeColors: themeColors,
         hintText: hintText,
         prefixText: prefixText,

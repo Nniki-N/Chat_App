@@ -5,6 +5,7 @@ class Svgs {
 
   static const String arrowLeft = 'assets/images/svg/arrow-left.svg';
   static const String arrowRight = 'assets/images/svg/arrow-right.svg';
+  static const String cameraSwitch = 'assets/images/svg/camera-switch.svg';
   static const String camera = 'assets/images/svg/camera.svg';
   static const String checkMark = 'assets/images/svg/check-mark.svg';
   static const String cross = 'assets/images/svg/cross.svg';

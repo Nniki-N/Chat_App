@@ -22,12 +22,6 @@ class ChatItemAvatar extends StatelessWidget {
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
       ),
-      // child: chatAvatar == null
-      //     ? SvgPicture.asset(Svgs.defaultUserImage)
-      //     : Image.memory(
-      //         chatAvatar!,
-      //         fit: BoxFit.cover,
-      //       ),
       child: avatarUrl == null || avatarUrl!.trim().isEmpty
           ? SvgPicture.asset(Svgs.defaultUserImage)
           : Image.network(

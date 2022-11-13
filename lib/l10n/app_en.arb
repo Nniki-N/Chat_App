@@ -33,5 +33,6 @@
     "pleaseEnterYourPassword": "Please enter your password",
     "pleaseEnterUserLogin": "Please enter user Login",
     "thisScreenDoesntExists": "This screen does not exists",
-    "back": "Back"
+    "back": "Back",
+    "sendTo": "Send to"
 }

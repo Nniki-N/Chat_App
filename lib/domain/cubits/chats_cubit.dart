@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'package:chat_app/domain/data_poviders/image_provider.dart';
-import 'package:chat_app/domain/entity/picture.dart';
+import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/services.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:chat_app/domain/data_poviders/auth_data_provider.dart';
@@ -12,7 +10,6 @@ import 'package:chat_app/domain/data_poviders/user_data_provider.dart';
 import 'package:chat_app/domain/entity/chat_configuration.dart';
 import 'package:chat_app/domain/entity/chat_model.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
-import 'package:http/http.dart' as http;
 
 class ChatsState {
   final UserModel? currentUser;
@@ -35,7 +32,6 @@ class ChatsCubit extends Cubit<ChatsState> {
   final _userDataProvider = UserDataProvider();
   final _chatDataProveder = ChatDataProvider();
   final _messageDataProveder = MessageDataProvider();
-  final _imageProvider = ImagesProvider();
 
   // check chats changes
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
@@ -50,7 +46,6 @@ class ChatsCubit extends Cubit<ChatsState> {
   Stream<String>? get errorTextStream => _errorTextStream;
 
   final _fullChatsList = <ChatModel>[];
-  final _chatsAvatars = <String, Uint8List?>{};
 
   // is used to display status for user
   bool _loading = false;
@@ -90,31 +85,6 @@ class ChatsCubit extends Cubit<ChatsState> {
         for (var chat in snapshot.docs) {
           final chatModel = ChatModel.fromJson(chat.data());
           _fullChatsList.add(chatModel);
-
-          // _imageProvider
-          //     .getPictureFromDB(title: chatModel.chatContactUserId)
-          //     .then((value) {
-          //   final picture = value?.picture;
-
-          //   _chatsAvatars[chatModel.chatContactUserId] = picture;
-          // });
-
-          // // load chats avatars
-          // final url = chatModel.chatImageUrl;
-          // if (url != null) {
-          //   final uri = Uri.parse(url);
-
-          //   http.get(uri).then((value) {
-          //     final picture = Picture(
-          //       title: chatModel.chatContactUserId,
-          //       picture: value.bodyBytes,
-          //     );
-
-          //     // _imageProvider.savePictureInDB(picture: picture);
-
-          //     _chatsAvatars[picture.title] = picture.picture;
-          //   });
-          // }
         }
       },
     );
@@ -210,6 +180,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   Future<ChatConfiguration?> showChat({
     required String contactUserId,
     required ChatModel chatModel,
+    required XFile? imageToSend,
   }) async {
     final contactUser =
         await _userDataProvider.getUserFromFireBase(userId: contactUserId);
@@ -220,6 +191,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     final chatConfiguration = ChatConfiguration(
       contactUser: contactUser,
       chat: chatModel.copyWith(chatImageUrl: contactUser.userImageUrl),
+      imageToSend: imageToSend,
     );
 
     return chatConfiguration;
@@ -270,11 +242,6 @@ class ChatsCubit extends Cubit<ChatsState> {
       _setTextError('$e');
     }
   }
-
-  // // load chat avatar
-  // Uint8List? loadChatAvatar({required String chatId}) {
-  //   return _chatsAvatars[chatId];
-  // }
 
   // load chats list
   Iterable<ChatModel> getChatsList() sync* {

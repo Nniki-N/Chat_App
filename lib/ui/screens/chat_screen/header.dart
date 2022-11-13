@@ -1,6 +1,7 @@
 import 'package:chat_app/domain/cubits/chat_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
+import 'package:chat_app/ui/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -47,8 +48,6 @@ class Header extends StatelessWidget {
                 );
               },
             ),
-            SizedBox(width: 16.w),
-            const _HeaderCallButtons()
           ],
         ),
       ),
@@ -70,8 +69,10 @@ class _HeaaderButtonBack extends StatelessWidget {
       width: 17.w,
       height: 17.h,
       child: IconButton(
-        onPressed: () => Navigator.of(context)
-            .pop(),
+        onPressed: () {
+          Navigator.of(context)
+              .popAndPushNamed(MainNavigationRouteNames.mainScreen);
+        },
         icon: SvgPicture.asset(
           Svgs.arrowLeft,
           color: themeColors.mainColor,
@@ -86,7 +87,8 @@ class _HeaaderButtonBack extends StatelessWidget {
 
 class _HeaderAvatar extends StatelessWidget {
   const _HeaderAvatar({
-    Key? key, required this.avatarUrl,
+    Key? key,
+    required this.avatarUrl,
   }) : super(key: key);
 
   final String? avatarUrl;
@@ -102,7 +104,10 @@ class _HeaderAvatar extends StatelessWidget {
       ),
       child: avatarUrl == null || avatarUrl!.trim().isEmpty
           ? SvgPicture.asset(Svgs.defaultUserImage)
-          : Image.network(avatarUrl!, fit: BoxFit.cover,),
+          : Image.network(
+              avatarUrl!,
+              fit: BoxFit.cover,
+            ),
     );
   }
 }
@@ -138,7 +143,9 @@ class _HeaderTitle extends StatelessWidget {
           Row(
             children: [
               Text(
-                isOnline ? AppLocalizations.of(context)!.active : AppLocalizations.of(context)!.notActive,
+                isOnline
+                    ? AppLocalizations.of(context)!.active
+                    : AppLocalizations.of(context)!.notActive,
                 style: TextStyle(
                   color: themeColors.secondTextColor,
                   fontSize: 10.sp,
@@ -162,52 +169,6 @@ class _HeaderTitle extends StatelessWidget {
           )
         ],
       ),
-    );
-  }
-}
-
-class _HeaderCallButtons extends StatelessWidget {
-  const _HeaderCallButtons({
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final themeColorsCubit = context.watch<ThemeCubit>();
-    final themeColors = themeColorsCubit.themeColors;
-
-    return Row(
-      children: [
-        SizedBox(
-          width: 20.w,
-          height: 20.h,
-          child: IconButton(
-            onPressed: () {},
-            icon: SvgPicture.asset(
-              Svgs.phone,
-              color: themeColors.mainColor,
-            ),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            padding: const EdgeInsets.all(0),
-          ),
-        ),
-        SizedBox(width: 30.w),
-        SizedBox(
-          width: 20.w,
-          height: 20.h,
-          child: IconButton(
-            onPressed: () {},
-            icon: SvgPicture.asset(
-              Svgs.videoPhone,
-              color: themeColors.mainColor,
-            ),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            padding: const EdgeInsets.all(0),
-          ),
-        ),
-      ],
     );
   }
 }

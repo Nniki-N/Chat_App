@@ -114,7 +114,7 @@ class ChatItem extends StatelessWidget {
       child: GestureDetector(
         onTap: () async {
           final chatConfiguration = await chatsCubit.showChat(
-              contactUserId: chatModel.chatContactUserId, chatModel: chatModel);
+              contactUserId: chatModel.chatContactUserId, chatModel: chatModel, imageToSend: null);
 
           if (chatConfiguration != null) {
             Navigator.of(context).pushNamed(

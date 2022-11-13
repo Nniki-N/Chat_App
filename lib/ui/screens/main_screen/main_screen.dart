@@ -1,9 +1,14 @@
 import 'package:chat_app/domain/cubits/account_cubit.dart';
+import 'package:chat_app/domain/cubits/camera_cubit.dart';
 import 'package:chat_app/domain/cubits/chats_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
+import 'package:chat_app/ui/navigation/main_navigation.dart';
+import 'package:chat_app/ui/screens/main_screen/camera_page/camera_page.dart';
 import 'package:chat_app/ui/screens/main_screen/chats_page/chats_page.dart';
 import 'package:chat_app/ui/screens/main_screen/settings_page/settings_page.dart';
+import 'package:chat_app/ui/utils/app_constants.dart';
+import 'package:chat_app/ui/widgets/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -64,14 +69,15 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
             create: (context) => ChatsCubit(),
             child: const ChatsPage(),
           ),
-          const Center(child: Text('Camera')),
+          Scaffold(backgroundColor: themeColors.backgroundColor),
           const SettingsPage(),
         ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: themeColors.backgroundColor,
-          border: Border(top: BorderSide(color: themeColors.bottomMenuBorderColor)),
+          border:
+              Border(top: BorderSide(color: themeColors.bottomMenuBorderColor)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -94,6 +100,10 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     return GestureDetector(
       onTap: () {
         setState(() {
+          if (index == 1) {
+            Navigator.of(context).pushNamed(MainNavigationRouteNames.cameraScreen);
+          }
+
           _currentIndex = index;
         });
       },

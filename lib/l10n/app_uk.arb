@@ -33,5 +33,6 @@
     "pleaseEnterYourPassword": "Будь ласка, введіть свій пароль",
     "pleaseEnterUserLogin": "Будь ласка, введіть логін користувача",
     "thisScreenDoesntExists": "Дана сторінка не існує",
-    "back": "Назад"
+    "back": "Назад",
+    "sendTo": "Відправити до"
 }
