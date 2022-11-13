@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:camera/camera.dart';
+import 'package:chat_app/domain/data_poviders/language_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +11,7 @@ import 'package:chat_app/domain/data_poviders/user_data_provider.dart';
 import 'package:chat_app/domain/entity/chat_configuration.dart';
 import 'package:chat_app/domain/entity/chat_model.dart';
 import 'package:chat_app/domain/entity/user_model.dart';
+
 
 class ChatsState {
   final UserModel? currentUser;
@@ -32,6 +34,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   final _userDataProvider = UserDataProvider();
   final _chatDataProveder = ChatDataProvider();
   final _messageDataProveder = MessageDataProvider();
+  final _languageProvider = LanguageProvider();
 
   // check chats changes
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
@@ -51,6 +54,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   bool _loading = false;
   String _searchText = '';
   String _errorText = '';
+  String? _tag;
   String get errorText => _errorText;
   bool get loading => _loading;
 
@@ -69,6 +73,9 @@ class ChatsCubit extends Cubit<ChatsState> {
 
       if (currentUser != null) break;
     }
+
+    // load current language code
+    _tag = await _languageProvider.getLanguageCode();
 
     _loading = false;
     // load current user state
@@ -177,11 +184,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   // show chat
-  Future<ChatConfiguration?> showChat({
-    required String contactUserId,
-    required ChatModel chatModel,
-    required XFile? imageToSend,
-  }) async {
+  Future<ChatConfiguration?> showChat({ required String contactUserId, required ChatModel chatModel, required XFile? imageToSend, }) async {
     final contactUser =
         await _userDataProvider.getUserFromFireBase(userId: contactUserId);
 
@@ -260,14 +263,15 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   // convert date of message to defferent formats depend on date
   String converDateInString({required DateTime dateTime}) {
+
     if (dateTime.year != DateTime.now().year) {
-      return DateFormat("dd.MM.yyyy").format(dateTime);
+      return DateFormat("dd.MM.yyyy", _tag).format(dateTime);
     } else if (dateTime.day != DateTime.now().day) {
-      return DateFormat("MMM d").format(dateTime);
+      return DateFormat("MMM d", _tag).format(dateTime);
     }
 
     // default format
-    return DateFormat("hh:mm").format(dateTime);
+    return DateFormat("hh:mm", _tag).format(dateTime);
   }
 
   // clean error text

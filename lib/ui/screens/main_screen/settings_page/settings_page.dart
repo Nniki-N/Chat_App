@@ -137,7 +137,7 @@ class _AppSettingsBlock extends StatelessWidget {
               _AppSettingsItem(
                 text: AppLocalizations.of(context)!.language,
                 onPressed: () {
-                  Navigator.of(context).pushNamed(MainNavigationRouteNames.changeLanguageScreen);
+                  Navigator.of(context).pushReplacementNamed(MainNavigationRouteNames.changeLanguageScreen);
                 },
               ),
             ],

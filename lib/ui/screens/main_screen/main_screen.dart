@@ -1,32 +1,30 @@
 import 'package:chat_app/domain/cubits/account_cubit.dart';
-import 'package:chat_app/domain/cubits/camera_cubit.dart';
 import 'package:chat_app/domain/cubits/chats_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
-import 'package:chat_app/ui/screens/main_screen/camera_page/camera_page.dart';
 import 'package:chat_app/ui/screens/main_screen/chats_page/chats_page.dart';
 import 'package:chat_app/ui/screens/main_screen/settings_page/settings_page.dart';
-import 'package:chat_app/ui/utils/app_constants.dart';
-import 'package:chat_app/ui/widgets/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  const MainScreen({super.key, required this.index});
+  final int? index;
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
-  int _currentIndex = 0;
+  late int _currentIndex;
   late AccountCubit accountCubit;
 
   @override
   void initState() {
+    _currentIndex = widget.index ?? 0;
     WidgetsBinding.instance.addObserver(this);
     super.initState();
   }

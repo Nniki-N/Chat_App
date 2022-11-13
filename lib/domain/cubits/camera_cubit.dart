@@ -53,7 +53,7 @@ class CameraCubit extends Cubit<CameraState> {
 
       _pictureIsTaken = true;
       emit(CameraState.done);
-    } on CameraException catch (e) {
+    } on CameraException {
       emit(CameraState.done);
     }
   }

@@ -30,7 +30,7 @@ class MainNavigationRouteNames {
 class MainNavigation {
   final routes = <String, Widget Function(BuildContext)>{
     MainNavigationRouteNames.authScreen: (context) => const AuthScreen(),
-    MainNavigationRouteNames.mainScreen: (context) => const MainScreen(),
+    // MainNavigationRouteNames.mainScreen: (context) => const MainScreen(index: ),
     MainNavigationRouteNames.newChatScreen: (context) => BlocProvider(
           create: (context) => ChatsCubit(),
           child: const NewChatScreen(),
@@ -52,6 +52,11 @@ class MainNavigation {
     switch (settings.name) {
       case MainNavigationRouteNames.initialScreen:
         return MaterialPageRoute(builder: (context) => const LoadingScrenn());
+      case MainNavigationRouteNames.mainScreen:
+        final index = settings.arguments as int?;
+
+        return MaterialPageRoute(
+            builder: (context) => MainScreen(index: index));
       case MainNavigationRouteNames.chatScreen:
         final configuration = settings.arguments as ChatConfiguration;
 

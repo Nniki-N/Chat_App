@@ -1,6 +1,7 @@
 import 'package:chat_app/domain/cubits/language_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/resources/resources.dart';
+import 'package:chat_app/ui/navigation/main_navigation.dart';
 import 'package:chat_app/ui/widgets/settings_divider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -30,7 +31,7 @@ class ChangeLanguageScreen extends StatelessWidget {
               width: 20.w,
               child: IconButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).popAndPushNamed(MainNavigationRouteNames.mainScreen, arguments: 2);
                 },
                 icon: SvgPicture.asset(
                   Svgs.cross,

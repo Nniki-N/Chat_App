@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:chat_app/domain/data_poviders/auth_data_provider.dart';
 import 'package:chat_app/domain/data_poviders/image_provider.dart';
+import 'package:chat_app/domain/data_poviders/language_provider.dart';
 import 'package:chat_app/domain/data_poviders/user_data_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,7 @@ class ChatCubit extends Cubit<ChatState> {
   final _chatDataProveder = ChatDataProvider();
   final _messageDataProveder = MessageDataProvider();
   final _imageProvider = ImagesProvider();
+  final _languageProvider = LanguageProvider();
 
   // stream for messages
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
@@ -74,6 +76,8 @@ class ChatCubit extends Cubit<ChatState> {
   bool _isMessageEditing = false;
   String _editingMessageId = '';
   bool get isMessageEditing => _isMessageEditing;
+
+  String? _tag;
 
   String? _messageImageUrl;
   XFile? _imageToSend;
@@ -175,6 +179,9 @@ class ChatCubit extends Cubit<ChatState> {
       _imageToSendInUint8List = await _imageToSend?.readAsBytes();
       _isImageSending = true;
     }
+
+    // load current language code
+    _tag = await _languageProvider.getLanguageCode();
 
     emit(state.copyWith());
   }
@@ -312,10 +319,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   // edit message
-  Future<void> editMessage({
-    required MessageModel messageModel,
-    required String newText,
-  }) async {
+  Future<void> editMessage({ required MessageModel messageModel, required String newText, }) async {
     final currentUser = await _userDataProvider.getUserFromFireBase(
         userId: _authDataProvider.getCurrentUserUID());
 
@@ -396,10 +400,7 @@ class ChatCubit extends Cubit<ChatState> {
   }
 
   // delete message
-  Future<void> deleteMessage({
-    required String messageId,
-    required String? messageImageId,
-  }) async {
+  Future<void> deleteMessage({ required String messageId, required String? messageImageId, }) async {
     if (messageId.isEmpty) return;
 
     final currentUser = await _userDataProvider.getUserFromFireBase(
@@ -546,11 +547,11 @@ class ChatCubit extends Cubit<ChatState> {
     if (index < _messagesList.length - 1) {
       if (messageModel.messageTime.year != DateTime.now().year) {
         return ChatDateSeparator(
-            date: DateFormat("d MMM yyyy").format(messageModel.messageTime));
+            date: DateFormat("d MMM yyyy", _tag).format(messageModel.messageTime));
       } else if (messageModel.messageTime.day !=
           _messagesList[index + 1].messageTime.day) {
         return ChatDateSeparator(
-            date: DateFormat("d MMM").format(messageModel.messageTime));
+            date: DateFormat("d MMM", _tag).format(messageModel.messageTime));
       }
     }
 
@@ -560,15 +561,15 @@ class ChatCubit extends Cubit<ChatState> {
   // get message date in format day and month
   String getMessageDate({required DateTime date}) {
     if (date.year != DateTime.now().year) {
-      return DateFormat("d MMM yyyy").format(date);
+      return DateFormat("d MMM yyyy", _tag).format(date);
     } else {
-      return DateFormat("d MMM").format(date);
+      return DateFormat("d MMM", _tag).format(date);
     }
   }
 
   // get message time in gormat hours and minutes
   String getMessageTime({required DateTime time}) =>
-      DateFormat("hh:mm").format(time);
+      DateFormat("hh:mm", _tag).format(time);
 
   @override
   Future<void> close() async {
