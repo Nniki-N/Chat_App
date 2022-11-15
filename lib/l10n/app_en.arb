@@ -34,5 +34,6 @@
     "pleaseEnterUserLogin": "Please enter user Login",
     "thisScreenDoesntExists": "This screen does not exists",
     "back": "Back",
-    "sendTo": "Send to"
+    "sendTo": "Send to",
+    "internetConnectionAbsents" : "Internet connection absents"
 }

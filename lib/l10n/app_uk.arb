@@ -34,5 +34,6 @@
     "pleaseEnterUserLogin": "Будь ласка, введіть логін користувача",
     "thisScreenDoesntExists": "Дана сторінка не існує",
     "back": "Назад",
-    "sendTo": "Відправити до"
+    "sendTo": "Відправити до",
+    "internetConnectionAbsents" : "Відсутнє підключення до Інтернету"
 }

@@ -1,8 +1,10 @@
 import 'package:chat_app/domain/cubits/account_cubit.dart';
 import 'package:chat_app/domain/cubits/auth_cubit.dart';
+import 'package:chat_app/domain/cubits/internet_connection_cubit.dart';
 import 'package:chat_app/domain/cubits/language_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
+import 'package:chat_app/ui/screens/no_internet_connection_screen/no_internet_connection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -29,7 +31,9 @@ class MyApp extends StatelessWidget {
             BlocProvider(create: (context) => AuthCubit()),
             BlocProvider(create: (context) => AccountCubit()),
             BlocProvider(create: (context) => LanguageCubit()),
+            BlocProvider(create: (context) => InternetConnectionCubit()),
           ],
+          // choose auth or main screen
           child: BlocListener<AuthCubit, AuthState>(
             listener: (context, state) {
               if (state == AuthState.signedOut) {
@@ -46,27 +50,29 @@ class MyApp extends StatelessWidget {
                     MainNavigationRouteNames.mainScreen, (r) => false);
               }
             },
-            child: BlocBuilder<LanguageCubit, LanguageState>(
-              builder: (context, state) {
-                final languageCode = state.currentLanguage;
+            // build screens base on language
+            child:
+                BlocBuilder<LanguageCubit, LanguageState>(
+                  builder: (context, state) {
+                    final languageCode = state.currentLanguage;
 
-                return MaterialApp(
-                  debugShowCheckedModeBanner: false,
-                  theme: ThemeData(
-                    fontFamily: languageCode == 'uk' ? 'OpenSans' : 'Poppins',
-                  ),
-                  localizationsDelegates:
-                      AppLocalizations.localizationsDelegates,
-                  supportedLocales: AppLocalizations.supportedLocales,
-                  locale: languageCode == null
-                      ? const Locale('en')
-                      : Locale(languageCode),
-                  routes: mainNavigation.routes,
-                  onGenerateRoute: mainNavigation.onGenerateRoute,
-                  navigatorKey: _navigatorKey,
-                );
-              },
-            ),
+                    return MaterialApp(
+                      debugShowCheckedModeBanner: false,
+                      theme: ThemeData(
+                        fontFamily: languageCode == 'uk' ? 'OpenSans' : 'Poppins',
+                      ),
+                      localizationsDelegates:
+                          AppLocalizations.localizationsDelegates,
+                      supportedLocales: AppLocalizations.supportedLocales,
+                      locale: languageCode == null
+                          ? const Locale('en')
+                          : Locale(languageCode),
+                      routes: mainNavigation.routes,
+                      onGenerateRoute: mainNavigation.onGenerateRoute,
+                      navigatorKey: _navigatorKey,
+                    );
+                  },
+                ),
           ),
         );
       },
