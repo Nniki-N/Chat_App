@@ -4,7 +4,6 @@ import 'package:chat_app/domain/cubits/internet_connection_cubit.dart';
 import 'package:chat_app/domain/cubits/language_cubit.dart';
 import 'package:chat_app/domain/cubits/theme_cubit.dart';
 import 'package:chat_app/ui/navigation/main_navigation.dart';
-import 'package:chat_app/ui/screens/no_internet_connection_screen/no_internet_connection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -19,7 +18,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final mainNavigation = MainNavigation();
 
-    // show ui on all screens in the same way
+    // set ui on all screens in the same way
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       minTextAdapt: true,
@@ -33,7 +32,7 @@ class MyApp extends StatelessWidget {
             BlocProvider(create: (context) => LanguageCubit()),
             BlocProvider(create: (context) => InternetConnectionCubit()),
           ],
-          // choose auth or main screen
+          // display auth or main screen
           child: BlocListener<AuthCubit, AuthState>(
             listener: (context, state) {
               if (state == AuthState.signedOut) {
@@ -51,8 +50,7 @@ class MyApp extends StatelessWidget {
               }
             },
             // build screens base on language
-            child:
-                BlocBuilder<LanguageCubit, LanguageState>(
+            child: BlocBuilder<LanguageCubit, LanguageState>(
                   builder: (context, state) {
                     final languageCode = state.currentLanguage;
 
@@ -67,7 +65,6 @@ class MyApp extends StatelessWidget {
                       locale: languageCode == null
                           ? const Locale('en')
                           : Locale(languageCode),
-                      routes: mainNavigation.routes,
                       onGenerateRoute: mainNavigation.onGenerateRoute,
                       navigatorKey: _navigatorKey,
                     );

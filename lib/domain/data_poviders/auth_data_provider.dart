@@ -26,7 +26,8 @@ class AuthDataProvider {
     return getCurrentUser()?.userId;
   }
 
-  Future<void> deleteUser({required String email, required String password}) async {
+  // delete user from firebase by email and password
+  Future<void> deleteUserFromFirebase({required String email, required String password}) async {
     final user = _firebaseAuth.currentUser;
     final AuthCredential credential = EmailAuthProvider.credential(email: email, password: password);
 

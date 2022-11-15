@@ -36,13 +36,13 @@ class ChatsCubit extends Cubit<ChatsState> {
   final _messageDataProveder = MessageDataProvider();
   final _languageProvider = LanguageProvider();
 
-  // check chats changes
+  // to check chats changes
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _chatsStreamSubscriprion;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _chatsStream;
   Stream<QuerySnapshot<Map<String, dynamic>>>? get chatsStream => _chatsStream;
 
-  // check error text changes
+  // to check error text changes
   final _errorTextStreamController = StreamController<String>();
   StreamSubscription<String>? _errorTextStreamSubscription;
   Stream<String>? _errorTextStream;
@@ -50,7 +50,7 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   final _fullChatsList = <ChatModel>[];
 
-  // is used to display status for user
+  // variablse used to display response to user
   bool _loading = false;
   String _searchText = '';
   String _errorText = '';
@@ -63,10 +63,12 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 
   Future<void> _initialize() async {
+    // display loading
     _loading = true;
     emit(state.copyWith(currentUser: null));
     UserModel? currentUser;
 
+    // load user with delay
     while (true) {
       currentUser = await _userDataProvider.getUserFromFireBase(
           userId: _authDataProvider.getCurrentUserUID());
@@ -77,11 +79,11 @@ class ChatsCubit extends Cubit<ChatsState> {
     // load current language code
     _tag = await _languageProvider.getLanguageCode();
 
+    // hide loading and save user in state
     _loading = false;
-    // load current user state
     emit(state.copyWith(currentUser: currentUser));
 
-    // check changes in chats
+    // notifies about any chats changes
     _chatsStream = _chatDataProveder
         .getChatsStreamFromFirestore(userId: currentUser.userId)
         .asBroadcastStream();
@@ -96,7 +98,7 @@ class ChatsCubit extends Cubit<ChatsState> {
       },
     );
 
-    // check when error text changes
+    // notifies about any error text changes
     _errorTextStream = _errorTextStreamController.stream.asBroadcastStream();
     _errorTextStreamSubscription = _errorTextStream?.listen((value) {
       _errorText = value;
@@ -106,7 +108,7 @@ class ChatsCubit extends Cubit<ChatsState> {
   // create new chat
   Future<bool> createNewChat({required String userLogin}) async {
     try {
-      // show loading
+      // display loading
       _loading = true;
       emit(state.copyWith());
 
@@ -122,7 +124,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         throw ('This\'s your Login');
       }
 
-      // user we want to contact
+      // get contact user by login from firebase
       UserModel? contactUser = await _userDataProvider
           .getUserByLoginFromFireBase(userLogin: userLogin);
 
@@ -131,10 +133,9 @@ class ChatsCubit extends Cubit<ChatsState> {
         throw ('User with this Login doesn\'t exist');
       }
 
-      // check if chat exists
+      // check if chat exists and stop if it is true
       final chatExist = await _chatDataProveder.chatExists(
           userId: currentUser.userId, chatId: contactUser.userId);
-
       if (chatExist) {
         throw ('This chat already exists');
       }
@@ -183,8 +184,8 @@ class ChatsCubit extends Cubit<ChatsState> {
     }
   }
 
-  // show chat
-  Future<ChatConfiguration?> showChat({ required String contactUserId, required ChatModel chatModel, required XFile? imageToSend, }) async {
+  // get chat configuration
+  Future<ChatConfiguration?> getChatConfiguration({ required String contactUserId, required ChatModel chatModel, required XFile? imageToSend, }) async {
     final contactUser =
         await _userDataProvider.getUserFromFireBase(userId: contactUserId);
 
@@ -200,6 +201,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     return chatConfiguration;
   }
 
+  // delete chat for both users
   Future<void> deleteChatForBoth({required ChatModel chatModel}) async {
     try {
       final currentUser = state.currentUser;
@@ -225,6 +227,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     }
   }
 
+  // delete chat only for current user
   Future<void> deleteChatForCurrentUser({required ChatModel chatModel}) async {
     try {
       final currentUser = state.currentUser;
@@ -234,7 +237,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         throw ('You aren\'t signed in');
       }
 
-      // delete message
+      // delete messages
       _messageDataProveder.deleteAllMessagesFromFirebase(
           userId: currentUser.userId, chatId: chatModel.chatId);
 
@@ -261,7 +264,7 @@ class ChatsCubit extends Cubit<ChatsState> {
     emit(state.copyWith());
   }
 
-  // convert date of message to defferent formats depend on date
+  // convert date of message to different formats base on sending time
   String converDateInString({required DateTime dateTime}) {
 
     if (dateTime.year != DateTime.now().year) {

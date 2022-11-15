@@ -45,7 +45,7 @@ class ChatDataProvider {
     }
   }
 
-  // update all chats avatars
+  // update all chats names
   Future<void> updateAllChatsNamesInFirebase({
     required String userId,
     required String chatName,
@@ -85,7 +85,7 @@ class ChatDataProvider {
         .set(chatModel.toJson());
   }
 
-  // get chat from firebase if it exists
+  // get chat from firebase or return null if it absents
   Future<ChatModel?> getChatFromFirebase({
     required String userId,
     required String chatId,

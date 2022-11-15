@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -50,14 +49,14 @@ class ChatCubit extends Cubit<ChatState> {
   final _imageProvider = ImagesProvider();
   final _languageProvider = LanguageProvider();
 
-  // stream for messages
+  // to check messages changes
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _messagesStreamSubscription;
   Stream<QuerySnapshot<Map<String, dynamic>>>? _messagesStream;
   Stream<QuerySnapshot<Map<String, dynamic>>>? get messagesStream =>
       _messagesStream;
 
-  // stream for contact user
+  // to check contact user changes
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
       _contactUserStreamSubscription;
   Stream<DocumentSnapshot<Map<String, dynamic>>>? _contactUserStream;
@@ -97,29 +96,29 @@ class ChatCubit extends Cubit<ChatState> {
     _initialize(imageToSend: imageToSend);
   }
 
-  // load state from firebase
   Future<void> _initialize({required XFile? imageToSend}) async {
+    // load user
     final currentUser = await _userDataProvider.getUserFromFireBase(
         userId: _authDataProvider.getCurrentUserUID());
 
     // stop initialization if current user absents
     if (currentUser == null) return;
 
-    // load current user state and show loading
+    // save current user in state
     emit(state.copyWith(
       currentUser: currentUser,
       currentChat: state.currentChat.copyWith(unreadMessagesCount: 0),
     ));
 
-    // all messages are read
+    // set all messages in chat as read
     await _chatDataProveder.updateChatInFirebase(
         userId: currentUser.userId, chatModel: state.currentChat);
 
-    // listen for contac user status
+    // notifies about any user status changes
     _contactUserStream = _userDataProvider.getUserStreamFromFiebase(
         userId: state.currentChat.chatContactUserId);
     _contactUserStreamSubscription = _contactUserStream?.listen((snapshot) {
-      // ckeck if contact user exists
+      // ckeck if contact user exists and return null if not
       final data = snapshot.data();
       if (data == null) return;
 
@@ -131,7 +130,7 @@ class ChatCubit extends Cubit<ChatState> {
             .copyWith(isChatContactUserOline: contactUser.isOnline),
       ));
 
-      // update chat in firebase
+      // update chat data in firebase
       _chatDataProveder.updateChatInFirebase(
           userId: currentUser.userId, chatModel: state.currentChat);
     });
@@ -186,6 +185,7 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith());
   }
 
+  // choose image to send from gallery ans update sending status
   Future<void> chooseImageToSendFromGallery() async {
     final imagePicker = ImagePicker();
 
@@ -195,6 +195,7 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith());
   }
 
+  // set image to send to null and update sending status
   void cancelImageSending() {
     _messageImageUrl = null;
     _imageToSend = null;
@@ -203,14 +204,14 @@ class ChatCubit extends Cubit<ChatState> {
     emit(state.copyWith());
   }
 
-  // send message
+  // send message with text if it is not empty
   Future<void> sendMessage({required String text}) async {
     final currentUser = state.currentUser;
 
     // stop if current user absents
     if (currentUser == null) return;
 
-    // edit message if message is in editing
+    // edit message if message is in editing status
     if (_isMessageEditing) {
       final messageModel = await _messageDataProveder.getMessageFromFirebase(
         userId: currentUser.userId,
@@ -227,14 +228,13 @@ class ChatCubit extends Cubit<ChatState> {
       }
 
       await editMessage(messageModel: messageModel, newText: text);
-
       return;
     }
 
-    // upload image in firebase if it is sending
+    // save image in firebase if it chosen
     final randomMessageImageId = const Uuid().v4();
     if (_isImageSending) {
-      _messageImageUrl = await _imageProvider.setImageInFirebase(
+      _messageImageUrl = await _imageProvider.saveImageInFirebase(
         imageFile: _imageToSend,
         imageId: randomMessageImageId,
       );
@@ -392,7 +392,7 @@ class ChatCubit extends Cubit<ChatState> {
     changeEditingStatus(isEditing: false);
   }
 
-  // set stauts of message editing
+  // change message editing status
   void changeEditingStatus({required bool isEditing, String messageId = ''}) {
     _editingMessageId = messageId;
     _isMessageEditing = isEditing;
@@ -474,14 +474,14 @@ class ChatCubit extends Cubit<ChatState> {
     }
 
     // delete message for current user
-    await _messageDataProveder.deleteMessage(
+    await _messageDataProveder.deleteMessageFromFirebase(
       userId: currentUser.userId,
       chatId: state.currentChat.chatId,
       messageId: messageId,
     );
 
     // delete message for contact user
-    await _messageDataProveder.deleteMessage(
+    await _messageDataProveder.deleteMessageFromFirebase(
       userId: state.currentChat.chatId,
       chatId: currentUser.userId,
       messageId: messageId,
@@ -492,7 +492,7 @@ class ChatCubit extends Cubit<ChatState> {
         imageId: messageImageId);
   }
 
-  // get widget view of message
+  // get message view widget
   Widget? getMessageView({required int index}) {
     final currentUser = state.currentUser;
 
@@ -540,7 +540,7 @@ class ChatCubit extends Cubit<ChatState> {
     }
   }
 
-  // get separator with date
+  // get separator with date in format base on sending time
   Widget? getMessageDateView({required int index}) {
     MessageModel messageModel = _messagesList[index];
 
@@ -558,7 +558,7 @@ class ChatCubit extends Cubit<ChatState> {
     return null;
   }
 
-  // get message date in format day and month
+  // get message date in format base on sending time
   String getMessageDate({required DateTime date}) {
     if (date.year != DateTime.now().year) {
       return DateFormat("d MMM yyyy", _tag).format(date);

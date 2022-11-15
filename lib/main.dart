@@ -19,7 +19,7 @@ Future<void> main() async {
   // allow app to use camera
   cameras = await availableCameras();
 
-  // allow save data in storage
+  // allow save data in bloc hydrated storage
   final storage = await HydratedStorage.build(
     storageDirectory: await getApplicationDocumentsDirectory(),
   );

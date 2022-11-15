@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class MessageDataProvider {
   final _firebaseFirestore = FirebaseFirestore.instance;
 
-  // add new message in firebase
+  // add new message to firebase
   Future<void> addMessageToFirebase({
     required String userId,
     required String chatId,
@@ -22,7 +22,7 @@ class MessageDataProvider {
         .set(messageModel.toJson());
   }
 
-  // update message data
+  // update message data in firebase
   Future<void> updateMessageInFirebase({
     required String userId,
     required String chatId,
@@ -38,7 +38,7 @@ class MessageDataProvider {
         .update(textMessageModel.toJson());
   }
 
-  // get message from firebase
+  // get message from firebase or return null if it absents
   Future<MessageModel?> getMessageFromFirebase({
     required String userId,
     required String chatId,
@@ -77,7 +77,7 @@ class MessageDataProvider {
     return snapshots;
   }
 
-  // delete messages
+  // delete all messages from firebase for the specified user
   Future<void> deleteAllMessagesFromFirebase({
     required String userId,
     required String chatId,
@@ -99,8 +99,8 @@ class MessageDataProvider {
     await batch.commit();
   }
 
-  // delete message
-  Future<void> deleteMessage({
+  // delete message from firebase
+  Future<void> deleteMessageFromFirebase({
     required String userId,
     required String chatId,
     required String messageId,

@@ -31,32 +31,13 @@ class MainNavigationRouteNames {
 }
 
 class MainNavigation {
-  final routes = <String, Widget Function(BuildContext)>{
-    // MainNavigationRouteNames.authScreen: (context) => const AuthScreen(),
-    // MainNavigationRouteNames.newChatScreen: (context) => BlocProvider(
-    //       create: (context) => ChatsCubit(),
-    //       child: const NewChatScreen(),
-    //     ),
-    // MainNavigationRouteNames.cameraScreen: (context) => MultiBlocProvider(
-    //       providers: [
-    //         BlocProvider(create: (context) => ChatsCubit()),
-    //         BlocProvider(create: (context) => CameraCubit()),
-    //       ],
-    //       child: const CameraPage(),
-    //     ),
-    // MainNavigationRouteNames.deleteAccountScreen: (context) =>
-    //     const DeleteAccountScreen(),
-    // MainNavigationRouteNames.changeLanguageScreen: (context) =>
-    //     const ChangeLanguageScreen(),
-  };
-
   Route<Object>? onGenerateRoute(RouteSettings settings) {
     return MaterialPageRoute(
       builder: (context) {
         final internetConnectionCubit =
             context.watch<InternetConnectionCubit>();
 
-        // shoe if internet connection absents
+        // display no coonection page if internet connection absents
         if (internetConnectionCubit.connectionStatus == false) {
           return const NoInernetConnectionScreen();
         }
@@ -109,38 +90,5 @@ class MainNavigation {
         }
       },
     );
-
-    //   switch (settings.name) {
-    //     case MainNavigationRouteNames.initialScreen:
-    //       return MaterialPageRoute(builder: (context) => const LoadingScrenn());
-    //     case MainNavigationRouteNames.mainScreen:
-    //       final index = settings.arguments as int?;
-    //
-    //       return MaterialPageRoute(
-    //           builder: (context) => MainScreen(index: index));
-    //     case MainNavigationRouteNames.chatScreen:
-    //       final configuration = settings.arguments as ChatConfiguration;
-    //
-    //       return MaterialPageRoute(
-    //         builder: (context) => BlocProvider(
-    //           create: (context) => ChatCubit(
-    //             chatModel: configuration.chat,
-    //             imageToSend: configuration.imageToSend,
-    //           ),
-    //           child: const ChatScreen(),
-    //         ),
-    //       );
-    //     case MainNavigationRouteNames.changeProfileScreen:
-    //       final configuration = settings.arguments as ChangeProfileConfiguration;
-    //
-    //       return MaterialPageRoute(
-    //         builder: (context) => ChangeProfileScreen(
-    //             currentUserModel: configuration.currentUserModel),
-    //       );
-    //     default:
-    //       return MaterialPageRoute(
-    //           builder: (context) => const NonExistentScreen());
-    //   }
-    // }
   }
 }

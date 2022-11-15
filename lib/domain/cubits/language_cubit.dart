@@ -1,6 +1,4 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import 'package:chat_app/domain/data_poviders/language_provider.dart';
 
 class LanguageState {
@@ -31,12 +29,15 @@ class LanguageCubit extends Cubit<LanguageState> {
   }
 
   Future<void> _initialize() async {
+    // load language codefrom storage and save in state
     emit(state.copyWith(currentLanguage: await _languageProvider.getLanguageCode()));
   }
 
+  // change language
   Future<void> changeLanguage({required String languageCode}) async {
     if (state.currentLanguage == languageCode) return;
 
+    // save new language code in storage
     await _languageProvider.changeLanguage(languageCode: languageCode);
     emit(state.copyWith(currentLanguage: languageCode));
   }

@@ -18,25 +18,24 @@ class AuthCubit extends Cubit<AuthState> {
   final _authDataProvider = AuthDataProvider();
   final _userDataProvider = UserDataProvider();
 
-  // stream subscriptions
+  // to check auth changes
   StreamSubscription<String?>? _authStreamSubscription;
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>?
       _chatsStreamSubscription;
 
-  // check error text changes
+  // to check error text changes
   final _errorTextStreamController = StreamController<String>();
   StreamSubscription<String>? _errorTextStreamSubscription;
   Stream<String>? _errorTextStream;
 
   Stream<String>? get errorTextStream => _errorTextStream;
 
-  // is used to display status to user
+  // variables used to display response to user
   bool _loading = false;
   String _errorText = '';
+  bool _showSingIn = true;
   bool get loading => _loading;
   String get errorText => _errorText;
-
-  bool _showSingIn = true;
   bool get showSignIn => _showSingIn;
 
   UserModel? _currentUser;
@@ -46,10 +45,11 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> _initialize() async {
+    // load user
     _currentUser = await _userDataProvider.getUserFromFireBase(
         userId: _authDataProvider.getCurrentUserUID());
 
-    // check when auth status changes and notifies
+    // notifies about any auth status changes
     _authStreamSubscription =
         _authDataProvider.onAuthStateChanged.listen((String? userId) {
       if (userId == null) {
@@ -63,7 +63,7 @@ class AuthCubit extends Cubit<AuthState> {
       }
     });
 
-    // check error text changes
+    // notifies about aby error text changes
     _errorTextStream = _errorTextStreamController.stream.asBroadcastStream();
     _errorTextStreamSubscription = _errorTextStream?.listen((value) {
       _errorText = value;
@@ -71,12 +71,9 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // sign in
-  Future<bool> signInWithEmailAndPassword({
-    required String emailOrLogin,
-    required String password,
-  }) async {
+  Future<bool> signInWithEmailAndPassword({ required String emailOrLogin, required String password, }) async {
     try {
-      // show loading
+      // display loading
       _loading = true;
       emit(AuthState.inProcess);
 
@@ -88,10 +85,10 @@ class AuthCubit extends Cubit<AuthState> {
         );
         final user = result.user;
 
-        // check if sign in was successful
+        // check if signing in was successful
         final userModel = await _converFirebaseUserIntoUserModel(user: user);
         if (userModel != null) {
-          // upload data of active status
+          // save active status in firebase
           _userDataProvider.updateUserInFirebase(
               user:
                   userModel.copyWith(isOnline: true, lastSeen: DateTime.now()));
@@ -103,7 +100,7 @@ class AuthCubit extends Cubit<AuthState> {
           emit(AuthState.signedIn);
           return true;
         } else {
-          throw('No user found for that email.');
+          throw ('No user found for that email.');
         }
       } else {
         // add @ if it isn't written
@@ -114,7 +111,7 @@ class AuthCubit extends Cubit<AuthState> {
 
         // stop if user absents
         if (userModel == null) {
-          throw('No user found for that login.');
+          throw ('No user found for that login.');
         }
 
         // sign in with email and password
@@ -124,9 +121,10 @@ class AuthCubit extends Cubit<AuthState> {
         );
         final user = result.user;
 
-        // check if sign in was successful
+        // check if signing in was successful
         userModel = await _converFirebaseUserIntoUserModel(user: user);
         if (userModel != null) {
+          // save active status in firebase
           _userDataProvider.updateUserInFirebase(
               user:
                   userModel.copyWith(isOnline: true, lastSeen: DateTime.now()));
@@ -138,11 +136,11 @@ class AuthCubit extends Cubit<AuthState> {
           emit(AuthState.signedIn);
           return true;
         } else {
-          throw('Some error happened');
+          throw ('Some error happened');
         }
       }
     } on FirebaseAuthException catch (e) {
-      // show error message
+      // display special error message
       switch (e.code) {
         case 'user-not-found':
           _setTextError('No user found for that email.');
@@ -166,7 +164,7 @@ class AuthCubit extends Cubit<AuthState> {
       _setTextError('$e');
       emit(AuthState.signedOut);
       return false;
-    }finally {
+    } finally {
       // hide loading
       _loading = false;
     }
@@ -175,7 +173,7 @@ class AuthCubit extends Cubit<AuthState> {
   // sign out
   Future<bool> signOut() async {
     try {
-      // show loading
+      // display loading
       _loading = true;
       emit(AuthState.inProcess);
 
@@ -187,18 +185,19 @@ class AuthCubit extends Cubit<AuthState> {
         throw ('You aren\'t signed in');
       }
 
-      // upload data of inactive status
+      // save inactive status in firebase
       _userDataProvider.updateUserInFirebase(
           user: _currentUser!
               .copyWith(isOnline: false, lastSeen: DateTime.now()));
 
+      // sign out
       await _firebaseAuth.signOut();
 
       _setTextError('');
       emit(AuthState.signedOut);
       return true;
     } on FirebaseAuthException catch (e) {
-      // show error message
+      // display special error message
       switch (e.code) {
         case 'user-signed-out':
           _setTextError('Invalid logout way.');
@@ -220,14 +219,9 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // register
-  Future<bool> registerWithEmailAndPassword({
-    required String userName,
-    required String email,
-    required String userLogin,
-    required String password,
-  }) async {
+  Future<bool> registerWithEmailAndPassword({ required String userName, required String email, required String userLogin, required String password, }) async {
     try {
-      // show loading
+      // display loading
       _loading = true;
       emit(AuthState.inProcess);
 
@@ -238,7 +232,7 @@ class AuthCubit extends Cubit<AuthState> {
         throw ('This user login is already used');
       }
 
-      // create new accaunt with email and password
+      // create new account with email and password
       final result = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -252,7 +246,7 @@ class AuthCubit extends Cubit<AuthState> {
           userName: userName,
           userLogin: userLogin);
       if (userModel != null) {
-        // upload user's new data
+        // save new user data in firebase
         await _userDataProvider.addUserToFirebase(user: userModel);
         _currentUser = userModel;
 
@@ -261,10 +255,10 @@ class AuthCubit extends Cubit<AuthState> {
         emit(AuthState.signedIn);
         return true;
       } else {
-        throw('This user doesn\'t exist');
+        throw ('This user doesn\'t exist');
       }
     } on FirebaseAuthException catch (e) {
-      // show error message
+      // display special error message
       switch (e.code) {
         case 'email-already-exists':
           _setTextError('This email already exists.');
@@ -292,21 +286,16 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   // conver firebase user date into UserModel
-  Future<UserModel?> _converFirebaseUserIntoUserModel({
-    required User? user,
-    String userEmail = '',
-    String userName = '',
-    String userLogin = '',
-  }) async {
+  Future<UserModel?> _converFirebaseUserIntoUserModel({ required User? user, String userEmail = '', String userName = '', String userLogin = '', }) async {
     if (user == null) return null;
 
-    // get UserModel from firebase firestore
+    // get UserModel from firebase
     final result = await _userDataProvider.getUserFromFireBase(
       userId: user.uid,
     );
     if (result != null) return result;
 
-    // return new UserModel if it absent in firebase firestore
+    // return new UserModel if user absents in firebase
     return UserModel(
         userId: user.uid,
         userEmail: userEmail,

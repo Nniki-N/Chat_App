@@ -31,13 +31,14 @@ class CameraCubit extends Cubit<CameraState> {
   Future<void> _initialize() async {
     emit(CameraState.inProcess);
 
+    // createnew camera controller in high resolution
     _cameraController = CameraController(
       camera,
       ResolutionPreset.high,
     );
 
+    // init camera controller
     _initializeControllerFuture = _cameraController.initialize();
-
     emit(CameraState.done);
   }
 

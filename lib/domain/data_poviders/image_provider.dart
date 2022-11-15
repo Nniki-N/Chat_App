@@ -16,15 +16,8 @@ class ImagesProvider {
     },
   );
 
-  // load image from firebase
-  Future<String?> loadImageFromFirebase({required String userId}) async {
-    if (userId.trim().isEmpty) return null;
-    // error here
-    return await _firebaseStorage.ref('images').child(userId).getDownloadURL();
-  }
-
-  // set image in firebase
-  Future<String?> setImageInFirebase({
+  // save image in firebase
+  Future<String?> saveImageInFirebase({
     required String imageId,
     required XFile? imageFile,
   }) async {
@@ -32,8 +25,8 @@ class ImagesProvider {
 
     if (imageFile == null) return null;
 
+    // convert image in correct file format and save
     final file = File(imageFile.path);
-
     await ref.child(imageId).putFile(file);
 
     return await ref.child(imageId).getDownloadURL();
@@ -49,27 +42,33 @@ class ImagesProvider {
     await ref.child(imageId).delete();
   }
 
-  // set image in firebase
-  Future<String?> setAvatarImageInFirebase({
+  // load avatar from firebase
+  Future<String?> loadAvatarFromFirebase({required String userId}) async {
+    if (userId.trim().isEmpty) return null;
+    
+    return await _firebaseStorage.ref('avatars').child(userId).getDownloadURL();
+  }
+
+  // save avatar in firebase
+  Future<String?> saveAvatarImageInFirebase({
     required String userId,
     required XFile? imageFile,
   }) async {
     if (userId.trim().isEmpty) return null;
 
     final ref = _firebaseStorage.ref('avatars');
-    // final image = await _imagePicker.pickImage(source: ImageSource.gallery);
 
     if (imageFile == null) return null;
 
+    // conver avatar in correct file format and save
     final file = File(imageFile.path);
-
     await ref.child(userId).putFile(file);
 
     return await ref.child(userId).getDownloadURL();
   }
 
-  // delete image from firebase
-  Future<void> deleteAvatarImageInFirebase({
+  // delete avatar from firebase
+  Future<void> deleteAvatarFromFirebase({
     required String userId,
   }) async {
     if (userId.trim().isEmpty) return;
@@ -82,7 +81,7 @@ class ImagesProvider {
   Future<void> savePictureInDB({required Picture picture}) async {
     final database = await picturesDatabase;
 
-    // check if picture already exists in database
+    // check if picture already exists in database and stop if it is true
     if (await getPictureFromDB(title: picture.title) != null) {
       database.update('Pictures', picture.toJson(),
           where: 'title = ?', whereArgs: [picture.title]);

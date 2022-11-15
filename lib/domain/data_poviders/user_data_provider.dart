@@ -13,7 +13,7 @@ class UserDataProvider {
         .update(user.toJson());
   }
 
-  // update user login in firebase
+  // update user login in firebase if it is uniq
   Future<void> updateUserLoginInFirebase({
     required String userId,
     required String userLogin,
@@ -39,6 +39,7 @@ class UserDataProvider {
         .update({FirestoreConstants.userLogin: userLogin});
   }
 
+  // check all logins and return false if new one is not uniq
   Future<bool> checkIfUserLoginIsUniq({required String userLogin}) async {
     final result = await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -62,6 +63,7 @@ class UserDataProvider {
         .update({FirestoreConstants.userName: userName});
   }
 
+  // add new user to firebase
   Future<void> addUserToFirebase({required UserModel user}) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -69,7 +71,7 @@ class UserDataProvider {
         .set(user.toJson());
   }
 
-  // get user from firebase if user exists
+  // get user from firebase or return null if user absents
   Future<UserModel?> getUserFromFireBase({required String? userId}) async {
     final snapshot = await _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
@@ -95,7 +97,7 @@ class UserDataProvider {
     return snapshots;
   }
 
-  // get user from firebase by email if user exists
+  // get user from firebase by email or return null if user absents
   Future<UserModel?> getUserByEmailFromFireBase(
       {required String userEmail}) async {
     final snapshot = await _firebaseFirestore
@@ -109,7 +111,7 @@ class UserDataProvider {
     return UserModel.fromJson(json);
   }
 
-  // get user from firebase by login if user exists
+  // get user from firebase by login or return null if user absents
   Future<UserModel?> getUserByLoginFromFireBase(
       {required String userLogin}) async {
     final snapshot = await _firebaseFirestore
@@ -123,8 +125,8 @@ class UserDataProvider {
     return UserModel.fromJson(json);
   }
 
-  // delete user from firebase
-  Future<void> deleteUserFromFirebase({required String userId}) async {
+  // delete user data from firebase
+  Future<void> deleteUserDataFromFirebase({required String userId}) async {
     _firebaseFirestore
         .collection(FirestoreConstants.pathUserCollection)
         .doc(userId)
